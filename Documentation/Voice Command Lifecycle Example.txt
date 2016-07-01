@@ -1,0 +1,27 @@
+Voice Command Lifecycle Example (Happy Path)
+
+Device:Sensor:Microphone
+    * Voice Sensor detects a voice command
+    * Voice command event is generated and placed in event queue
+    * Sound data is stored and assosciated with event
+Handler:Service:VoiceService
+    * Voice event is detected
+    * Sound data is obtained and processed to discover command
+    * Request event is sent so command can be fufilled
+Handler:Service:RequestService
+    * Request event is detected
+    * Register and event handler to detect when a provider is handling the request. Also Register a listener for if the request cannot be fufilled due to no available actuator.
+    * send event to trigger command
+Handler:Service:Actuator
+    * Recieve command event
+    * Send event indicating that request is being fufilled
+Handler:Service:RequestService
+    * Detect event indicating that request is being fufilled
+    * Unregister handler for provider and failed to find provider
+    * Register handler for request fufilled and actuator failed
+Handler:Service:Actuator
+    * Send event indicating request is fufilled
+Handler:Service:RequestService
+    * Detect event indicating request is fufilled
+    * Unregister handlers for request
+    * Send request fufilled event
