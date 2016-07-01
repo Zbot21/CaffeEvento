@@ -12,12 +12,12 @@ public class Event {
 
     public Event(){
         eventName = null;
-        eventDetails = new HashMap<String, String>();
+        eventDetails = new HashMap<>();
     }
 
     public Event(String eventName){
         this.eventName = eventName; 
-        eventDetails = new HashMap<String, String>();
+        eventDetails = new HashMap<>();
     }
 
     public String getEventName(){
