@@ -34,22 +34,22 @@ public abstract class Service {
 
     protected void addEventSource(EventSource theEventSource) {
         eventSources.add(theEventSource);
-        updateServiceChangedListeners(l -> l.addedEventSource(theEventSource));
+        updateServiceChangedListeners(l -> l.addEventSource(theEventSource));
     }
 
     protected void removeEventSource(EventSource theEventSource) {
         eventSources.remove(theEventSource);
-        updateServiceChangedListeners(l -> l.removedEventSource(theEventSource));
+        updateServiceChangedListeners(l -> l.removeEventSource(theEventSource));
     }
 
     protected void addEventHandler(EventHandler theEventHandler) {
         eventHandlers.add(theEventHandler);
-        updateServiceChangedListeners(l -> l.addedEventHandler(theEventHandler));
+        updateServiceChangedListeners(l -> l.addEventHandler(theEventHandler));
     }
 
     protected void removeEventHandler(EventHandler theEventHandler) {
         eventHandlers.remove(theEventHandler);
-        updateServiceChangedListeners(l -> l.removedEventHandler(theEventHandler));
+        updateServiceChangedListeners(l -> l.removeEventHandler(theEventHandler));
     }
 
     private void updateServiceChangedListeners(Consumer<ServiceChangedListener> serviceChange) {

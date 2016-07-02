@@ -2,7 +2,6 @@ package services;
 
 import events.EventHandler;
 import events.EventSource;
-import org.easymock.EasyMockRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,10 +54,10 @@ public class ServiceTest {
 
     @Test
     public void testAddRemoveEventSource() {
-        listener.addedEventSource(eventSource);
+        listener.addEventSource(eventSource);
         expectLastCall().once();
 
-        listener.removedEventSource(eventSource);
+        listener.removeEventSource(eventSource);
         expectLastCall().once();
 
         replayAll();
@@ -71,10 +70,10 @@ public class ServiceTest {
 
     @Test
     public void testAddRemoveEventHandler() {
-        listener.addedEventHandler(eventHandler);
+        listener.addEventHandler(eventHandler);
         expectLastCall().once();
 
-        listener.removedEventHandler(eventHandler);
+        listener.removeEventHandler(eventHandler);
         expectLastCall().once();
 
         replayAll();

@@ -1,6 +1,8 @@
 package services;
 
+import events.Event;
 import events.EventHandler;
+import events.EventSink;
 import events.EventSource;
 
 import java.util.ArrayList;
@@ -9,7 +11,7 @@ import java.util.List;
 /**
  * Created by chris on 7/1/16.
  */
-public class EventQueue implements ServiceChangedListener {
+public class EventQueue implements ServiceChangedListener, EventSink {
 
     private List<Service> services = new ArrayList<>();
     private List<EventHandler> eventHandlers = new ArrayList<>();
@@ -17,35 +19,40 @@ public class EventQueue implements ServiceChangedListener {
 
     public void registerService(Service theService){
         services.add(theService);
-        eventHandlers.addAll(theService.getEventHandlers());
-        eventSources.addAll(theService.getEventSources());
+        theService.getEventHandlers().forEach(this::addEventHandler);
+        theService.getEventSources().forEach(this::addEventSource);
         theService.addServiceChangedListener(this);
     }
 
     public void unRegisterService(Service theService){
         theService.removeServiceChangedListener(this);
-        eventHandlers.removeAll(theService.getEventHandlers());
-        eventSources.removeAll(theService.getEventSources());
+        theService.getEventHandlers().forEach(this::removeEventHandler);
+        theService.getEventSources().forEach(this::removeEventSource);
         services.remove(theService);
     }
 
     @Override
-    public void addedEventHandler(EventHandler theEventHandler) {
+    public void addEventHandler(EventHandler theEventHandler) {
         eventHandlers.add(theEventHandler);
     }
 
     @Override
-    public void removedEventHandler(EventHandler theEventHandler) {
+    public void removeEventHandler(EventHandler theEventHandler) {
         eventHandlers.remove(theEventHandler);
     }
 
     @Override
-    public void addedEventSource(EventSource theEventSource) {
+    public void addEventSource(EventSource theEventSource) {
         eventSources.add(theEventSource);
     }
 
     @Override
-    public void removedEventSource(EventSource theEventSource) {
+    public void removeEventSource(EventSource theEventSource) {
         eventSources.remove(theEventSource);
+    }
+
+    @Override
+    public void receiveEvent(Event e) {
+
     }
 }
