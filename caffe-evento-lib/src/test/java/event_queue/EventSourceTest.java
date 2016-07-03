@@ -1,4 +1,4 @@
-package events;
+package event_queue;
 
 import org.junit.Before;
 import org.junit.Test;

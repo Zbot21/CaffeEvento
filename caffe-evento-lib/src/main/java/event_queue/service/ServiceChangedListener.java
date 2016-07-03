@@ -1,7 +1,7 @@
-package services;
+package event_queue.service;
 
-import events.EventHandler;
-import events.EventSource;
+import event_queue.EventHandler;
+import event_queue.EventSource;
 
 /**
  * Created by chris on 7/1/16.

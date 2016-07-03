@@ -1,4 +1,4 @@
-package events;
+package event_queue;
 
 /**
  * Created by chris on 7/1/16.

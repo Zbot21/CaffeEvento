@@ -1,4 +1,4 @@
-package events;
+package event_queue;
 
 import java.util.ArrayList;
 import java.util.List;

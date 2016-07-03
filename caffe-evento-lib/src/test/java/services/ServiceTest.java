@@ -1,7 +1,9 @@
 package services;
 
-import events.EventHandler;
-import events.EventSource;
+import event_queue.EventHandler;
+import event_queue.EventSource;
+import event_queue.service.Service;
+import event_queue.service.ServiceChangedListener;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

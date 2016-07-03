@@ -1,4 +1,4 @@
-package events;
+package event_queue;
 
 import java.util.Map;
 import java.util.HashMap;

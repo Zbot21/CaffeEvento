@@ -1,8 +1,11 @@
 package services;
 
 import com.google.common.collect.Lists;
-import events.EventHandler;
-import events.EventSource;
+import event_queue.Event;
+import event_queue.EventHandler;
+import event_queue.EventQueue;
+import event_queue.EventSource;
+import event_queue.service.Service;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +33,9 @@ public class EventQueueTest {
     EventQueue instance = new EventQueue();
 
     @Mock
+    Event event;
+
+    @Mock
     Service service;
 
     List<EventHandler> eventHandlers;
@@ -41,11 +47,62 @@ public class EventQueueTest {
         eventSources = Lists.newArrayList(createMock(EventSource.class), createMock(EventSource.class));
     }
 
+    private void setupService() {
+        expect(service.getEventHandlers()).andReturn(eventHandlers).once();
+        expect(service.getEventSources()).andReturn(eventSources).once();
+
+        service.addServiceChangedListener(instance);
+        expectLastCall().once();
+
+        eventSources.forEach(source -> {
+            source.addListener(instance);
+            expectLastCall().once();
+        });
+    }
+
+    @Test
+    public void testReceiveEvent() {
+        setupService();
+
+        eventHandlers.forEach(eventHandler -> {
+            eventHandler.handleEvent(event);
+            expectLastCall().once();
+
+            expect(eventHandler.getHandlerCondition()).andReturn(event -> true);
+        });
+
+        replayAll();
+        instance.registerService(service);
+        instance.receiveEvent(event);
+        verifyAll();
+    }
+
+    @Test
+    public void testPredicateFalse() {
+        setupService();
+
+        eventHandlers.forEach(eventHandler -> {
+            expect(eventHandler.getHandlerCondition()).andReturn(event -> false);
+        });
+
+        replayAll();
+        instance.registerService(service);
+        instance.receiveEvent(event);
+        verifyAll();
+    }
 
     @Test
     public void testRegisterUnregisterService() {
         expect(service.getEventHandlers()).andReturn(eventHandlers).times(2);
         expect(service.getEventSources()).andReturn(eventSources).times(2);
+
+        eventSources.forEach(source -> {
+            source.addListener(instance);
+            expectLastCall().once();
+
+            source.removeListener(instance);
+            expectLastCall().once();
+        });
 
         service.addServiceChangedListener(instance);
         expectLastCall().once();
@@ -72,5 +129,7 @@ public class EventQueueTest {
 
         verifyAll();
     }
+
+
 
 }
