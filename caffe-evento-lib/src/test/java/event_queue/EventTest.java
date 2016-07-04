@@ -21,15 +21,22 @@ public class EventTest {
     }
 
     @Test
-    public void testConstructorEventName() {
-        instance = new Event("The Event Name");
+    public void testConstructor() {
+        instance = new Event("The Event Name", "The Event Type");
         assertEquals("The Event Name", instance.getEventName());
+        assertEquals("The Event Type", instance.getEventType());
     }
 
     @Test
     public void testEventName() {
         instance.setEventName("The Event Name");
         assertEquals("The Event Name", instance.getEventName());
+    }
+
+    @Test
+    public void testEventType() {
+        instance.setEventType("The Event Type");
+        assertEquals("The Event Type", instance.getEventType());
     }
 
     @Test
@@ -41,5 +48,22 @@ public class EventTest {
     @Test
     public void testEventDataWithNoDataReturnsNull() {
         assertEquals(null, instance.getEventField("Event Field 1s"));
+    }
+
+    @Test
+    public void testEventEncodeDecode() {
+        instance = new Event("The Event Name", "Test Event Type");
+        instance.setEventField("EventField1", "EventField1");
+        instance.setEventField("EventField2", "EventField2");
+        String encoded = instance.encodeEvent();
+        Event decoded  = Event.decodeEvent(encoded);
+        assertEventsEqual(instance, decoded);
+    }
+
+    public void assertEventsEqual(Event e1, Event e2){
+        assertEquals(e1.getEventName(), e2.getEventName());
+        assertEquals(e1.getEventName(), e2.getEventName());
+        assertTrue(e1.getEventDetails().entrySet().containsAll(e2.getEventDetails().entrySet()));
+        assertTrue(e2.getEventDetails().entrySet().containsAll(e1.getEventDetails().entrySet()));
     }
 }

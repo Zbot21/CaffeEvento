@@ -19,14 +19,14 @@ public class EventQueue implements ServiceChangedListener, EventSink {
     private List<EventHandler> eventHandlers = new ArrayList<>();
     private List<EventSource> eventSources = new ArrayList<>();
 
-    public void registerService(Service theService){
+    public void registerService(Service theService) {
         services.add(theService);
         theService.getEventHandlers().forEach(this::addEventHandler);
         theService.getEventSources().forEach(this::addEventSource);
         theService.addServiceChangedListener(this);
     }
 
-    public void unRegisterService(Service theService){
+    public void unRegisterService(Service theService) {
         theService.removeServiceChangedListener(this);
         theService.getEventHandlers().forEach(this::removeEventHandler);
         theService.getEventSources().forEach(this::removeEventSource);

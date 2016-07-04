@@ -18,6 +18,11 @@
             <artifactId>guava</artifactId>
             <version>LATEST</version>
         </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>LATEST</version>
+        </dependency>
     </dependencies>
 
     <build>

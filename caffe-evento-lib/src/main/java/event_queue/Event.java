@@ -1,5 +1,7 @@
 package event_queue;
 
+import com.google.gson.GsonBuilder;
+
 import java.util.Map;
 import java.util.HashMap;
 
@@ -8,30 +10,45 @@ import java.util.HashMap;
  */
 public class Event {
     private String eventName;
-    private Map<String, String> eventDetails;
+    private String eventType;
+    private Map<String, String> eventDetails = new HashMap<>();
 
     public Event(){
         eventName = null;
-        eventDetails = new HashMap<>();
+        eventType = null;
     }
 
-    public Event(String eventName){
-        this.eventName = eventName; 
-        eventDetails = new HashMap<>();
+    public Event(String eventName, String eventType){
+        this.eventName = eventName;
+        this.eventType = eventType;
     }
 
     public String getEventName(){
         return this.eventName;
     }
-
     public void setEventName(String name){
         this.eventName = name;
     }
+
+    public String getEventType() { return this.eventType; }
+    public void setEventType(String type) { this.eventType = type; }
 
     public void setEventField(String field, String value) {
         eventDetails.put(field, value);
     }
     public String getEventField(String field) {
         return eventDetails.get(field);
+    }
+
+    public Map<String, String> getEventDetails() {
+        return new HashMap<>(eventDetails);
+    }
+
+    public String encodeEvent() {
+        return (new GsonBuilder()).create().toJson(this);
+    }
+
+    public static Event decodeEvent(String theEvent) {
+        return (new GsonBuilder()).create().fromJson(theEvent, Event.class);
     }
 }
