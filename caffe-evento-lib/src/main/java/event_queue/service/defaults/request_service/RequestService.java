@@ -61,9 +61,6 @@ public class RequestService extends Service {
                 log.error("Could not generate a request for the event.", e);
                 e.printStackTrace();
             }
-
-            // TODO: Add event handler to wait for request being fufilled event
-            // TODO: Add event handler to wait for no handler available event
         }
     }
 
@@ -119,7 +116,7 @@ public class RequestService extends Service {
                 @Override
                 public void handleEvent(Event theEvent) {
                     if(fufillmentAttempts.get() > MAX_RETRIES) {
-                        log.error("Could not fufill request" + requestId ". Induced by " + sourceEvent.getEventName());
+                        log.error("Could not fufill request" + requestId + ". Induced by " + sourceEvent.getEventName());
                         activeRequests.remove(requestId);
                         requestEventHandlers.forEach(RequestService.this::removeEventHandler);
                     } else {
