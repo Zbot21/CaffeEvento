@@ -5,6 +5,8 @@ import event_queue.Event;
 import event_queue.EventHandler;
 import event_queue.EventQueue;
 import event_queue.EventSource;
+import event_queue.service.Action;
+import event_queue.service.ActuatorService;
 import event_queue.service.Service;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,11 +49,11 @@ public class EventQueueTest {
         eventSources = Lists.newArrayList(createMock(EventSource.class), createMock(EventSource.class));
     }
 
-    private void setupService() {
-        expect(service.getEventHandlers()).andReturn(eventHandlers).once();
-        expect(service.getEventSources()).andReturn(eventSources).once();
+    private void prepareService(Service theService) {
+        expect(theService.getEventHandlers()).andReturn(eventHandlers).once();
+        expect(theService.getEventSources()).andReturn(eventSources).once();
 
-        service.addServiceChangedListener(instance);
+        theService.addServiceChangedListener(instance);
         expectLastCall().once();
 
         eventSources.forEach(source -> {
@@ -62,7 +64,7 @@ public class EventQueueTest {
 
     @Test
     public void testReceiveEvent() {
-        setupService();
+        prepareService(service);
 
         eventHandlers.forEach(eventHandler -> {
             eventHandler.handleEvent(event);
@@ -79,7 +81,7 @@ public class EventQueueTest {
 
     @Test
     public void testPredicateFalse() {
-        setupService();
+        prepareService(service);
 
         eventHandlers.forEach(eventHandler -> {
             expect(eventHandler.getHandlerCondition()).andReturn(event -> false);
@@ -88,6 +90,27 @@ public class EventQueueTest {
         replayAll();
         instance.registerService(service);
         instance.receiveEvent(event);
+        verifyAll();
+    }
+
+    @Test
+    public void testGetProvidedActions() {
+        ActuatorService actuatorService1 = createMock(ActuatorService.class);
+        ActuatorService actuatorService2 = createMock(ActuatorService.class);
+        prepareService(actuatorService1);
+        prepareService(actuatorService2);
+        List<Action> actions1 = Lists.newArrayList(createMock(Action.class), createMock(Action.class));
+        List<Action> actions2 = Lists.newArrayList(createMock(Action.class), createMock(Action.class));
+
+        expect(actuatorService1.getProvidedActions()).andReturn(actions1).anyTimes();
+        expect(actuatorService2.getProvidedActions()).andReturn(actions2).anyTimes();
+
+        replayAll();
+        instance.registerService(actuatorService1);
+        instance.registerService(actuatorService2);
+        assertTrue(instance.getProvidedActions().containsAll(actions1));
+        assertTrue(instance.getProvidedActions().containsAll(actions2));
+
         verifyAll();
     }
 
