@@ -7,6 +7,7 @@ import event_queue.service.ServiceChangedListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,8 +57,9 @@ public class EventQueue implements ServiceChangedListener, EventSink {
     }
 
     @Override
-    public void receiveEvent(Event e) {
-        eventHandlers.stream()
+    public synchronized void receiveEvent(Event e) {
+        List<EventHandler> tempEventHandlers = new ArrayList<>(eventHandlers);
+        tempEventHandlers.stream()
                 .filter(handler -> handler.getHandlerCondition().test(e))
                 .forEach(handler -> handler.handleEvent(e));
     }

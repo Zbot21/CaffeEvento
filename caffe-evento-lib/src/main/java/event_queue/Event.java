@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * Created by chris on 7/1/16.
@@ -11,6 +12,7 @@ import java.util.HashMap;
 public class Event {
     private String eventName;
     private String eventType;
+    private UUID eventId = UUID.randomUUID();
     private Map<String, String> eventDetails = new HashMap<>();
 
     public Event(){
@@ -38,6 +40,10 @@ public class Event {
     }
     public String getEventField(String field) {
         return eventDetails.get(field);
+    }
+
+    public UUID getEventId() {
+        return eventId;
     }
 
     public Map<String, String> getEventDetails() {
