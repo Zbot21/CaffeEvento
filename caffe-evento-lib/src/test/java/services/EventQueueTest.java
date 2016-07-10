@@ -1,10 +1,7 @@
 package services;
 
 import com.google.common.collect.Lists;
-import event_queue.Event;
-import event_queue.EventHandler;
-import event_queue.EventQueue;
-import event_queue.EventSource;
+import event_queue.*;
 import event_queue.service.Action;
 import event_queue.service.ActuatorService;
 import event_queue.service.Service;
@@ -32,7 +29,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { Service.class } )
 public class EventQueueTest {
-    EventQueue instance = new EventQueue();
+    EventQueueImpl instance = new EventQueueImpl();
 
     @Mock
     Event event;

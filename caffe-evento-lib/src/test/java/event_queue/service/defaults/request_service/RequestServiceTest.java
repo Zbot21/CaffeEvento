@@ -3,6 +3,7 @@ package event_queue.service.defaults.request_service;
 import event_queue.Event;
 import event_queue.EventGenerator;
 import event_queue.EventQueue;
+import event_queue.EventQueueImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +19,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(PowerMockRunner.class)
 public class RequestServiceTest {
-    private EventQueue eventQueue = new EventQueue();
+    private EventQueue eventQueue = new EventQueueImpl();
     private RequestService instance = new RequestService();
     private EventCollector eventCollector = new EventCollector();
     private EventGenerator eventGenerator = new EventGenerator();

@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>caffeevento-lib</artifactId>
+    <artifactId>caffe-evento-lib</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -38,6 +38,7 @@
             <artifactId>powermock-easymock-release-full</artifactId>
             <version>1.6.4</version>
             <scope>test</scope>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
