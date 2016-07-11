@@ -60,7 +60,7 @@ public class RequestService extends Service {
         return failedEvent;
     }
 
-    private class RequestEventHandler implements EventHandler {
+    private class RequestEventHandler extends EventHandler {
 
         @Override
         public Predicate<Event> getHandlerCondition() {
@@ -141,7 +141,6 @@ public class RequestService extends Service {
                     } else {
                         eventGenerator.registerEvent(fufillmentEvent);
                     }
-
                 }
             };
 

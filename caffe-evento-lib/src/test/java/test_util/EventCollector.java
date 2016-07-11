@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * Created by chris on 7/9/16.
  */
-public class EventCollector implements EventHandler {
+public class EventCollector extends EventHandler {
     private List<Event> collectedEvents = new ArrayList<>();
 
     @Override

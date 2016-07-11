@@ -2,9 +2,12 @@ package event_queue.service;
 
 import event_queue.EventHandler;
 import event_queue.EventSource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -16,12 +19,18 @@ public abstract class Service {
     private List<EventSource> eventSources = new ArrayList<>();
     private List<EventHandler> eventHandlers = new ArrayList<>();
 
+    protected Log log;
+
     public List<EventSource> getEventSources() {
         return new ArrayList<>(eventSources);
     }
 
     public List<EventHandler> getEventHandlers() {
         return new ArrayList<>(eventHandlers);
+    }
+
+    public Service() {
+        log = LogFactory.getLog(getClass());
     }
 
     public void addServiceChangedListener(ServiceChangedListener theServiceChangedListener) {
@@ -32,6 +41,11 @@ public abstract class Service {
         serviceChangedListeners.remove(theServiceChangedListener);
     }
 
+    public final void removeEventSource(UUID id) {
+        eventSources.stream().filter(s -> s.getEventSourceId().equals(id)).findFirst()
+                .ifPresent(this::removeEventSource);
+    }
+
     protected void addEventSource(EventSource theEventSource) {
         eventSources.add(theEventSource);
         updateServiceChangedListeners(l -> l.addEventSource(theEventSource));
@@ -40,6 +54,11 @@ public abstract class Service {
     protected void removeEventSource(EventSource theEventSource) {
         eventSources.remove(theEventSource);
         updateServiceChangedListeners(l -> l.removeEventSource(theEventSource));
+    }
+
+    public final void removeEventHandler(UUID id) {
+        eventHandlers.stream().filter(h -> h.getEventHandlerId().equals(id)).findFirst()
+                .ifPresent(this::removeEventHandler);
     }
 
     protected void addEventHandler(EventHandler theEventHandler) {
