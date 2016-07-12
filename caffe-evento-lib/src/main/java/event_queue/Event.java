@@ -2,6 +2,7 @@ package event_queue;
 
 import com.google.gson.GsonBuilder;
 
+import java.io.Reader;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
@@ -55,6 +56,10 @@ public class Event {
     }
 
     public static Event decodeEvent(String theEvent) {
+        return (new GsonBuilder()).create().fromJson(theEvent, Event.class);
+    }
+
+    public static Event decodeEvent(Reader theEvent) {
         return (new GsonBuilder()).create().fromJson(theEvent, Event.class);
     }
 }
