@@ -22,8 +22,6 @@ public abstract class EventHandler {
     private EventHandlerBuilder builder;
 
     @Expose(serialize = false, deserialize = false)
-    private Consumer<Event> eventConsumer;
-    @Expose(serialize = false, deserialize = false)
     protected Log log;
 
     public final UUID getEventHandlerId() {
@@ -116,10 +114,8 @@ public abstract class EventHandler {
 
                     Optional.ofNullable(eventName).map(name -> (Predicate<Event>) event -> event.getEventName().equals(name)).ifPresent(predicates::add);
                     Optional.ofNullable(eventType).map(type -> (Predicate<Event>) event -> event.getEventType().equals(type)).ifPresent(predicates::add);
-                    Optional.ofNullable(eventData).map(Map::entrySet).map(Collection::stream).ifPresent(stream ->
-                            stream.forEach(entry -> predicates.add(event ->
-                                    Optional.ofNullable(event.getEventField(entry.getKey())).map(field -> field.equals(entry.getValue())).orElse(false)
-                            ))
+                    eventData.entrySet().stream().forEach(entry -> predicates.add(event -> Optional.ofNullable(event.getEventField(entry.getKey()))
+                            .map(field -> field.equals(entry.getValue())).orElse(false))
                     );
 
                     return predicates.stream().reduce(event -> true, Predicate::and);

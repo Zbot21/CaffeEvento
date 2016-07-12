@@ -1,5 +1,6 @@
 package event_queue.service.defaults.remote_service.client;
 
+import event_queue.EventHandler;
 import event_queue.service.Service;
 
 /**
@@ -7,5 +8,14 @@ import event_queue.service.Service;
  */
 public class HttpClientService extends Service {
 
+    @Override
+    public void addEventHandler(EventHandler handler) {
+        super.addEventHandler(handler);
+        // Check if this is a remote handled connection?
+    }
 
+    @Override
+    public void removeEventHandler(EventHandler handler) {
+
+    }
 }
