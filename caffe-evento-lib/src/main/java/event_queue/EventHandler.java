@@ -39,7 +39,7 @@ public abstract class EventHandler {
     }
 
     public final EventHandler getFromBuilder() {
-        return builder.build();
+        return builder.build(eventHandlerID);
     }
 
     public abstract Predicate<Event> getHandlerCondition();
@@ -108,8 +108,8 @@ public abstract class EventHandler {
             return this;
         }
 
-        public EventHandler build() {
-            return new EventHandler() {
+        public EventHandler build(UUID id) {
+            EventHandler handler =  new EventHandler() {
                 @Override
                 public Predicate<Event> getHandlerCondition() {
                     List<Predicate<Event>> predicates = new ArrayList<>();
@@ -117,9 +117,9 @@ public abstract class EventHandler {
                     Optional.ofNullable(eventName).map(name -> (Predicate<Event>) event -> event.getEventName().equals(name)).ifPresent(predicates::add);
                     Optional.ofNullable(eventType).map(type -> (Predicate<Event>) event -> event.getEventType().equals(type)).ifPresent(predicates::add);
                     Optional.ofNullable(eventData).map(Map::entrySet).map(Collection::stream).ifPresent(stream ->
-                        stream.forEach(entry -> predicates.add(event ->
-                            Optional.ofNullable(event.getEventField(entry.getKey())).map(field -> field.equals(entry.getValue())).orElse(false)
-                        ))
+                            stream.forEach(entry -> predicates.add(event ->
+                                    Optional.ofNullable(event.getEventField(entry.getKey())).map(field -> field.equals(entry.getValue())).orElse(false)
+                            ))
                     );
 
                     return predicates.stream().reduce(event -> true, Predicate::and);
@@ -132,6 +132,12 @@ public abstract class EventHandler {
                     Optional.ofNullable(socketEventReceiver).ifPresent(dest -> sendSocketEvent(dest, theEvent));
                 }
             };
+            handler.eventHandlerID = id;
+            return handler;
+        }
+
+        public EventHandler build() {
+            return build(UUID.randomUUID());
         }
     }
 }
