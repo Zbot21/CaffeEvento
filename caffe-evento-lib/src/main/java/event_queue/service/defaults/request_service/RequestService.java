@@ -3,6 +3,7 @@ package event_queue.service.defaults.request_service;
 import event_queue.Event;
 import event_queue.EventGenerator;
 import event_queue.EventHandler;
+import event_queue.EventHandlerBuilder;
 import event_queue.service.Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,7 +39,17 @@ public class RequestService extends Service {
         addEventSource(eventGenerator);
 
         // Add the request event handler
-        addEventHandler(new RequestEventHandler());
+        addEventHandler(EventHandlerBuilder.create()
+                .eventType(REQUEST_EVENT_TYPE)
+                .eventHandler(theEvent -> {
+                    try {
+                        Request theRequest = new Request(theEvent);
+                        activeRequests.put(theRequest.getRequestId(), theRequest);
+                    } catch (RequestException e) {
+                        log.error("Could not generate a request for the event.", e);
+                        e.printStackTrace();
+                    }
+        }).build());
     }
 
     public static Event generateRequestEvent(String eventName, Event fufillmentEvent){
@@ -58,25 +69,6 @@ public class RequestService extends Service {
         Event failedEvent = new Event(eventName, REQUEST_FAILED_EVENT);
         failedEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
         return failedEvent;
-    }
-
-    private class RequestEventHandler extends EventHandler {
-
-        @Override
-        public Predicate<Event> getHandlerCondition() {
-            return e -> e.getEventType().equals(REQUEST_EVENT_TYPE);
-        }
-
-        @Override
-        public void handleEvent(Event theEvent) {
-            try {
-                Request theRequest = new Request(theEvent);
-                activeRequests.put(theRequest.getRequestId(), theRequest);
-            } catch (RequestException e) {
-                log.error("Could not generate a request for the event.", e);
-                e.printStackTrace();
-            }
-        }
     }
 
     public int numberOfActiveRequests() {
@@ -101,48 +93,28 @@ public class RequestService extends Service {
             fufillmentEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
 
             // Event handler success
-            EventHandler success = new EventHandler() {
-                @Override
-                public Predicate<Event> getHandlerCondition() {
-                    return e -> e.getEventType().equals(REQUEST_FUFILLED_EVENT) &&
-                            e.getEventField(REQUEST_ID_FIELD) != null &&
-                            UUID.fromString(e.getEventField(REQUEST_ID_FIELD)).equals(requestId);
-                }
-
-                @Override
-                public void handleEvent(Event theEvent) {
-                    eventGenerator.registerEvent(createRequestCompletedEvent());
-                    requestEventHandlers.forEach(e -> RequestService.this.removeEventHandler(e)); // Do not replace with method reference
-                    activeRequests.remove(requestId);
-                }
-
-                private Event createRequestCompletedEvent() {
-                    Event completedEvent = new Event("Completed request " + requestId, REQUEST_COMPLETED_EVENT);
-                    completedEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
-                    return completedEvent;
-                }
-            };
-
-            EventHandler failure = new EventHandler() {
-                @Override
-                public Predicate<Event> getHandlerCondition() {
-                    return e -> e.getEventType().equals(REQUEST_FAILED_EVENT) &&
-                            e.getEventField(REQUEST_ID_FIELD) != null &&
-                            UUID.fromString(e.getEventField(REQUEST_ID_FIELD)).equals(requestId);
-                }
-
-                @Override
-                public void handleEvent(Event theEvent) {
-                    if(fufillmentAttempts.incrementAndGet() > MAX_RETRIES) {
-                        log.error("Could not fufill request " + requestId + ".\n" +
-                                "Induced by " + sourceEvent.getEventName() + ": " + sourceEvent.getEventId());
+            EventHandler success = EventHandlerBuilder.create()
+                    .eventType(REQUEST_FUFILLED_EVENT)
+                    .eventData(REQUEST_ID_FIELD, requestId.toString())
+                    .eventHandler(event -> {
+                        eventGenerator.registerEvent(createRequestCompletedEvent());
+                        requestEventHandlers.forEach(e -> removeEventHandler(e)); // Do not replace with method reference
                         activeRequests.remove(requestId);
-                        requestEventHandlers.forEach(e -> RequestService.this.removeEventHandler(e)); // Do not replace with method reference
-                    } else {
-                        eventGenerator.registerEvent(fufillmentEvent);
-                    }
-                }
-            };
+                    }).build();
+
+            EventHandler failure = EventHandlerBuilder.create()
+                    .eventType(REQUEST_FAILED_EVENT)
+                    .eventData(REQUEST_ID_FIELD, requestId.toString())
+                    .eventHandler(event -> {
+                        if(fufillmentAttempts.incrementAndGet() > MAX_RETRIES) {
+                            log.error("Could not fufill request " + requestId + ".\n" +
+                                    "Induced by " + sourceEvent.getEventName() + ": " + sourceEvent.getEventId());
+                            activeRequests.remove(requestId);
+                            requestEventHandlers.forEach(e -> removeEventHandler(e)); // Do not replace with method reference
+                        } else {
+                            eventGenerator.registerEvent(fufillmentEvent);
+                        }
+                    }).build();
 
             requestEventHandlers.add(success);
             requestEventHandlers.add(failure);
@@ -150,6 +122,12 @@ public class RequestService extends Service {
             addEventHandler(failure);
 
             eventGenerator.registerEvent(fufillmentEvent);
+        }
+
+        private Event createRequestCompletedEvent() {
+            Event completedEvent = new Event("Completed request " + requestId, REQUEST_COMPLETED_EVENT);
+            completedEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
+            return completedEvent;
         }
 
         public UUID getRequestId() {
