@@ -10,17 +10,16 @@ import java.util.stream.Collectors;
 /**
  * Created by chris on 7/9/16.
  */
-public class EventCollector extends EventHandler {
+public class EventCollector{
     private List<Event> collectedEvents = new ArrayList<>();
+    private EventHandler handler;
 
-    @Override
-    public Predicate<Event> getHandlerCondition() {
-        return e -> true;
+    public EventCollector() {
+        handler = EventHandler.create().eventHandler(collectedEvents::add).build();
     }
 
-    @Override
-    public void handleEvent(Event theEvent) {
-        collectedEvents.add(theEvent);
+    public EventHandler getHandler() {
+        return handler;
     }
 
     public List<Event> findEventsWithName(String name) {

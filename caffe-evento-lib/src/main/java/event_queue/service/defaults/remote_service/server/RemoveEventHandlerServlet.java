@@ -1,9 +1,8 @@
-package event_queue.service.defaults.remote_handler_service;
+package event_queue.service.defaults.remote_service.server;
 
 import event_queue.service.Service;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import event_queue.service.defaults.remote_service.ServiceServlet;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package event_queue.service.defaults.remote_handler_service;
+package event_queue.service.defaults.remote_service;
 
 import event_queue.service.Service;
 import org.apache.commons.logging.Log;

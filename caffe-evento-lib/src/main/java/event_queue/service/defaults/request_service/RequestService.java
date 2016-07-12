@@ -7,7 +7,6 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
 
 /**
  * Created by chris on 7/2/16.
@@ -36,7 +35,7 @@ public class RequestService extends Service {
         addEventSource(eventGenerator);
 
         // Add the request event handler
-        addEventHandler(EventHandlerBuilder.create()
+        addEventHandler(EventHandler.create()
                 .eventType(REQUEST_EVENT_TYPE)
                 .eventHandler(theEvent -> {
                     try {
@@ -93,7 +92,7 @@ public class RequestService extends Service {
             fufillmentEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
 
             // Event handler success
-            EventHandler success = EventHandlerBuilder.create()
+            EventHandler success = EventHandler.create()
                     .eventType(REQUEST_FUFILLED_EVENT)
                     .eventData(REQUEST_ID_FIELD, requestId.toString())
                     .eventHandler(event -> {
@@ -102,7 +101,7 @@ public class RequestService extends Service {
                         activeRequests.remove(requestId);
                     }).build();
 
-            EventHandler failure = EventHandlerBuilder.create()
+            EventHandler failure = EventHandler.create()
                     .eventType(REQUEST_FAILED_EVENT)
                     .eventData(REQUEST_ID_FIELD, requestId.toString())
                     .eventHandler(event -> {

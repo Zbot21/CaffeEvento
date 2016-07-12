@@ -27,7 +27,7 @@ public class RequestServiceTest {
     @Before
     public void setUp() {
         eventQueue.registerService(instance);
-        eventQueue.addEventHandler(eventCollector);
+        eventQueue.addEventHandler(eventCollector.getHandler());
         eventQueue.addEventSource(eventGenerator);
     }
 

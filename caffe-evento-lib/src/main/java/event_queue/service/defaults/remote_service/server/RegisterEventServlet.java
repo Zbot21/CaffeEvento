@@ -1,8 +1,9 @@
-package event_queue.service.defaults.remote_handler_service;
+package event_queue.service.defaults.remote_service.server;
 
 import event_queue.Event;
 import event_queue.EventGenerator;
 import event_queue.service.Service;
+import event_queue.service.defaults.remote_service.ServiceServlet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -1,6 +1,7 @@
-package event_queue.service.defaults.remote_handler_service;
+package event_queue.service.defaults.remote_service.server;
 
 import event_queue.service.Service;
+import event_queue.service.defaults.remote_service.ServiceServlet;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.ServletHandler;
 import org.mortbay.jetty.servlet.ServletHolder;
@@ -15,6 +16,10 @@ public class HttpServerService extends Service {
 
     private Server server;
     private ServletHandler servletHandler;
+
+    public HttpServerService() {
+        this(DEFAULT_LISTEN_PORT);
+    }
 
     public HttpServerService(int port) {
         server = new Server(port);
