@@ -46,12 +46,12 @@ public abstract class Service {
                 .ifPresent(this::removeEventSource);
     }
 
-    protected void addEventSource(EventSource theEventSource) {
+    public void addEventSource(EventSource theEventSource) {
         eventSources.add(theEventSource);
         updateServiceChangedListeners(l -> l.addEventSource(theEventSource));
     }
 
-    protected void removeEventSource(EventSource theEventSource) {
+    public void removeEventSource(EventSource theEventSource) {
         eventSources.remove(theEventSource);
         updateServiceChangedListeners(l -> l.removeEventSource(theEventSource));
     }
@@ -61,12 +61,12 @@ public abstract class Service {
                 .ifPresent(this::removeEventHandler);
     }
 
-    protected void addEventHandler(EventHandler theEventHandler) {
+    public void addEventHandler(EventHandler theEventHandler) {
         eventHandlers.add(theEventHandler);
         updateServiceChangedListeners(l -> l.addEventHandler(theEventHandler));
     }
 
-    protected void removeEventHandler(EventHandler theEventHandler) {
+    public void removeEventHandler(EventHandler theEventHandler) {
         eventHandlers.remove(theEventHandler);
         updateServiceChangedListeners(l -> l.removeEventHandler(theEventHandler));
     }

@@ -6,6 +6,9 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.stream.Collectors;
 
 /**
  * Created by chris on 7/11/16.
@@ -16,7 +19,8 @@ public class RegisterEventServlet extends ServiceServlet {
     }
 
     @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse res) {
-        throw new NotImplementedException();
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String reqContent = req.getReader().lines().collect(Collectors.joining());
+
     }
 }
