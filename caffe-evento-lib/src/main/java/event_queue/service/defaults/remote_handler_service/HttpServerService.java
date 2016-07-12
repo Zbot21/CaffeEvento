@@ -27,7 +27,7 @@ public class HttpServerService extends Service {
 
     protected void addServiceServlet(Class<? extends ServiceServlet> clazz, String mapping) {
         try {
-            ServiceServlet servlet = (ServiceServlet)clazz.getConstructor(Service.class).newInstance(this);
+            ServiceServlet servlet = clazz.getConstructor(Service.class).newInstance(this);
             ServletHolder servletHolder = new ServletHolder(servlet);
             servletHandler.addServletWithMapping(servletHolder, mapping);
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {

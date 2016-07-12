@@ -1,9 +1,6 @@
 package event_queue.service.defaults.request_service;
 
-import event_queue.Event;
-import event_queue.EventGenerator;
-import event_queue.EventHandler;
-import event_queue.EventHandlerBuilder;
+import event_queue.*;
 import event_queue.service.Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,22 +50,25 @@ public class RequestService extends Service {
     }
 
     public static Event generateRequestEvent(String eventName, Event fufillmentEvent){
-        Event requestEvent = new Event(eventName, REQUEST_EVENT_TYPE);
-        requestEvent.setEventField(REQUEST_EVENT_FUFILLMENT, fufillmentEvent.encodeEvent());
-        requestEvent.setEventField(REQUEST_ID_FIELD, UUID.randomUUID().toString());
-        return requestEvent;
+        return EventBuilder.create()
+                .name(eventName).type(REQUEST_EVENT_TYPE)
+                .data(REQUEST_EVENT_FUFILLMENT, fufillmentEvent.encodeEvent())
+                .data(REQUEST_ID_FIELD, UUID.randomUUID().toString())
+                .build();
     }
 
     public static Event generateRequestSuccessEvent(String eventName, UUID requestId) {
-        Event successEvent = new Event(eventName, REQUEST_FUFILLED_EVENT);
-        successEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
-        return successEvent;
+        return EventBuilder.create()
+                .name(eventName)
+                .type(REQUEST_FUFILLED_EVENT)
+                .data(REQUEST_ID_FIELD, requestId.toString()).build();
     }
 
     public static Event generateRequestFailedEvent(String eventName, UUID requestId) {
-        Event failedEvent = new Event(eventName, REQUEST_FAILED_EVENT);
-        failedEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
-        return failedEvent;
+        return EventBuilder.create()
+                .name(eventName)
+                .type(REQUEST_FAILED_EVENT)
+                .data(REQUEST_ID_FIELD, requestId.toString()).build();
     }
 
     public int numberOfActiveRequests() {
