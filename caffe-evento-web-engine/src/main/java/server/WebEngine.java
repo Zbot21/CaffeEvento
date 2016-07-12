@@ -10,7 +10,7 @@ public class WebEngine {
     private EventQueue queue;
     private Server server;
 
-    /* TODOb
+    /* TODO: Web Engine
        This web interface needs to be able to
        - Add local jars (services)
        - Add remote services (through web API calls)
