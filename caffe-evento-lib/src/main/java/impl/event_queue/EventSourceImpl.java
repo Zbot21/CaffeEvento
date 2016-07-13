@@ -14,15 +14,15 @@ import java.util.UUID;
 public class EventSourceImpl implements EventSource {
     private UUID eventSourceId = UUID.randomUUID();
 
-    private List<EventQueue.EventSink> eventSinks = new ArrayList<>();
+    private List<EventQueue> eventSinks = new ArrayList<>();
 
     @Override
-    public void addListener(EventQueue.EventSink theEventSink) {
+    public void addListener(EventQueue theEventSink) {
         eventSinks.add(theEventSink);
     }
 
     @Override
-    public void removeListener(EventQueue.EventSink theEventSink) {
+    public void removeListener(EventQueue theEventSink) {
         eventSinks.remove(theEventSink);
     }
 

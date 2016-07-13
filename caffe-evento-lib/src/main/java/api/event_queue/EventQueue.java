@@ -3,7 +3,7 @@ package api.event_queue;
 /**
  * Created by chris on 7/10/16.
  */
-public interface EventQueue {
+public interface EventQueue extends EventQueueInterfaceChangedListener {
     void registerService(EventQueueInterface theEventQueueInterface);
 
     void unRegisterService(EventQueueInterface theEventQueueInterface);
@@ -17,11 +17,4 @@ public interface EventQueue {
     void removeEventSource(EventSource theEventSource);
 
     void receiveEvent(Event e);
-
-    /**
-     * Created by chris on 7/1/16.
-     */
-    interface EventSink {
-        void receiveEvent(Event e);
-    }
 }
