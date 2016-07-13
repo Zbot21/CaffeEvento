@@ -3,6 +3,8 @@ package event_queue;
 import com.google.gson.GsonBuilder;
 
 import java.io.Reader;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
@@ -15,6 +17,7 @@ public class Event {
     private String eventType;
     private UUID eventId = UUID.randomUUID();
     private Map<String, String> eventDetails = new HashMap<>();
+    private Date timestamp = Date.from(Instant.now());
 
     public Event(){
         eventName = null;

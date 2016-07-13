@@ -8,6 +8,10 @@ import org.mortbay.jetty.servlet.ServletHolder;
 
 import java.lang.reflect.InvocationTargetException;
 
+import static event_queue.service.defaults.remote_service.server.HttpServerConstants.ADD_EVENT_HANDLER_ENDPOINT;
+import static event_queue.service.defaults.remote_service.server.HttpServerConstants.REGISTER_EVENT_ENDPOINT;
+import static event_queue.service.defaults.remote_service.server.HttpServerConstants.REMOVE_EVENT_HANDLER_ENDPOINT;
+
 /**
  * Created by chris on 7/11/16.
  */
@@ -25,9 +29,9 @@ public class HttpServerService extends Service {
         server = new Server(port);
         servletHandler = new ServletHandler();
         server.addHandler(servletHandler);
-        addServiceServlet(AddEventHandlerServlet.class, "/addEventHandler");
-        addServiceServlet(RegisterEventServlet.class, "/registerEventServlet");
-        addServiceServlet(RemoveEventHandlerServlet.class, "/removeEventHandler");
+        addServiceServlet(AddEventHandlerServlet.class, ADD_EVENT_HANDLER_ENDPOINT);
+        addServiceServlet(RegisterEventServlet.class, REGISTER_EVENT_ENDPOINT);
+        addServiceServlet(RemoveEventHandlerServlet.class, REMOVE_EVENT_HANDLER_ENDPOINT);
     }
 
     protected void addServiceServlet(Class<? extends ServiceServlet> clazz, String mapping) {
