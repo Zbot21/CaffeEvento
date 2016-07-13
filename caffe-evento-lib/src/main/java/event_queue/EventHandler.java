@@ -1,5 +1,6 @@
 package event_queue;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -10,6 +11,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -42,6 +44,18 @@ public abstract class EventHandler {
 
     public abstract Predicate<Event> getHandlerCondition();
     public abstract void handleEvent(Event theEvent);
+
+    public String encodeEventHandler() {
+        return new GsonBuilder().create().toJson(this);
+    }
+
+    public static EventHandler fromJson(String json) {
+        return new GsonBuilder().create().fromJson(json, EventHandler.class).getFromBuilder();
+    }
+
+    public static EventHandler fromJson(Reader jsonReader) {
+        return new GsonBuilder().create().fromJson(jsonReader, EventHandler.class).getFromBuilder();
+    }
 
     protected void sendHttpEvent(String destination, Event theEvent) {
         HttpClient client = HttpClientBuilder.create().build();

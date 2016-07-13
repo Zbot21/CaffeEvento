@@ -1,6 +1,5 @@
 package event_queue.service.defaults.remote_service.server;
 
-import com.google.gson.GsonBuilder;
 import event_queue.EventHandler;
 import event_queue.service.Service;
 import event_queue.service.defaults.remote_service.ServiceServlet;
@@ -19,7 +18,7 @@ public class AddEventHandlerServlet extends ServiceServlet {
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        EventHandler handler = new GsonBuilder().create().fromJson(req.getReader(), EventHandler.class).getFromBuilder();
+        EventHandler handler = EventHandler.fromJson(req.getReader());
         service.addEventHandler(handler);
         res.getWriter().write(handler.getEventHandlerId().toString()); // Return the event handler id
     }
