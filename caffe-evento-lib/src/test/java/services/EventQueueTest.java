@@ -1,10 +1,11 @@
 package services;
 
 import com.google.common.collect.Lists;
-import event_queue.*;
-import event_queue.service.Action;
-import event_queue.service.ActuatorService;
-import event_queue.service.Service;
+import api.event_queue.*;
+import api.event_queue.EventQueueInterface;
+import impl.event_queue.EventQueueInterfaceImpl;
+import impl.event_queue.EventQueueImpl;
+import impl.event_queue.EventSourceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +28,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
  * Created by chris on 7/1/16.
  */
 @RunWith( PowerMockRunner.class )
-@PrepareForTest( { Service.class } )
+@PrepareForTest( { EventQueueInterfaceImpl.class } )
 public class EventQueueTest {
     EventQueueImpl instance = new EventQueueImpl();
 
@@ -35,7 +36,7 @@ public class EventQueueTest {
     Event event;
 
     @Mock
-    Service service;
+    EventQueueInterface eventQueueInterface;
 
     List<EventHandler> eventHandlers;
     List<EventSource> eventSources;
@@ -43,14 +44,14 @@ public class EventQueueTest {
     @Before
     public void setUp() {
         eventHandlers = Lists.newArrayList(createMock(EventHandler.class), createMock(EventHandler.class));
-        eventSources = Lists.newArrayList(createMock(EventSource.class), createMock(EventSource.class));
+        eventSources = Lists.newArrayList(createMock(EventSourceImpl.class), createMock(EventSourceImpl.class));
     }
 
-    private void prepareService(Service theService) {
-        expect(theService.getEventHandlers()).andReturn(eventHandlers).once();
-        expect(theService.getEventSources()).andReturn(eventSources).once();
+    private void prepareService(EventQueueInterface theEventQueueInterface) {
+        expect(theEventQueueInterface.getEventHandlers()).andReturn(eventHandlers).once();
+        expect(theEventQueueInterface.getEventSources()).andReturn(eventSources).once();
 
-        theService.addServiceChangedListener(instance);
+        theEventQueueInterface.addEventQueueInterfaceChangedListener(instance);
         expectLastCall().once();
 
         eventSources.forEach(source -> {
@@ -61,7 +62,7 @@ public class EventQueueTest {
 
     @Test
     public void testReceiveEvent() {
-        prepareService(service);
+        prepareService(eventQueueInterface);
 
         eventHandlers.forEach(eventHandler -> {
             eventHandler.handleEvent(event);
@@ -71,50 +72,29 @@ public class EventQueueTest {
         });
 
         replayAll();
-        instance.registerService(service);
+        instance.registerService(eventQueueInterface);
         instance.receiveEvent(event);
         verifyAll();
     }
 
     @Test
     public void testPredicateFalse() {
-        prepareService(service);
+        prepareService(eventQueueInterface);
 
         eventHandlers.forEach(eventHandler -> {
             expect(eventHandler.getHandlerCondition()).andReturn(event -> false);
         });
 
         replayAll();
-        instance.registerService(service);
+        instance.registerService(eventQueueInterface);
         instance.receiveEvent(event);
         verifyAll();
     }
 
     @Test
-    public void testGetProvidedActions() {
-        ActuatorService actuatorService1 = createMock(ActuatorService.class);
-        ActuatorService actuatorService2 = createMock(ActuatorService.class);
-        prepareService(actuatorService1);
-        prepareService(actuatorService2);
-        List<Action> actions1 = Lists.newArrayList(createMock(Action.class), createMock(Action.class));
-        List<Action> actions2 = Lists.newArrayList(createMock(Action.class), createMock(Action.class));
-
-        expect(actuatorService1.getProvidedActions()).andReturn(actions1).anyTimes();
-        expect(actuatorService2.getProvidedActions()).andReturn(actions2).anyTimes();
-
-        replayAll();
-        instance.registerService(actuatorService1);
-        instance.registerService(actuatorService2);
-        assertTrue(instance.getProvidedActions().containsAll(actions1));
-        assertTrue(instance.getProvidedActions().containsAll(actions2));
-
-        verifyAll();
-    }
-
-    @Test
     public void testRegisterUnregisterService() {
-        expect(service.getEventHandlers()).andReturn(eventHandlers).times(2);
-        expect(service.getEventSources()).andReturn(eventSources).times(2);
+        expect(eventQueueInterface.getEventHandlers()).andReturn(eventHandlers).times(2);
+        expect(eventQueueInterface.getEventSources()).andReturn(eventSources).times(2);
 
         eventSources.forEach(source -> {
             source.addListener(instance);
@@ -124,26 +104,26 @@ public class EventQueueTest {
             expectLastCall().once();
         });
 
-        service.addServiceChangedListener(instance);
+        eventQueueInterface.addEventQueueInterfaceChangedListener(instance);
         expectLastCall().once();
 
-        service.removeServiceChangedListener(instance);
+        eventQueueInterface.removeEventQueueInterfaceChangedListener(instance);
         expectLastCall().once();
 
         replayAll();
-        instance.registerService(service);
-        List<Service> services = Whitebox.getInternalState(instance, "services");
+        instance.registerService(eventQueueInterface);
+        List<EventQueueInterface> eventQueueInterfaces = Whitebox.getInternalState(instance, "eventQueueInterfaces");
         List<EventHandler> handlers = Whitebox.getInternalState(instance, "eventHandlers");
         List<EventSource> sources = Whitebox.getInternalState(instance, "eventSources");
-        assertTrue(services.contains(service));
+        assertTrue(eventQueueInterfaces.contains(eventQueueInterface));
         assertTrue(handlers.containsAll(eventHandlers));
         assertTrue(sources.containsAll(eventSources));
 
-        instance.unRegisterService(service);
-        services = Whitebox.getInternalState(instance, "services");
+        instance.unRegisterService(eventQueueInterface);
+        eventQueueInterfaces = Whitebox.getInternalState(instance, "eventQueueInterfaces");
         handlers = Whitebox.getInternalState(instance, "eventHandlers");
         sources = Whitebox.getInternalState(instance, "eventSources");
-        assertFalse(services.contains(service));
+        assertFalse(eventQueueInterfaces.contains(eventQueueInterface));
         assertFalse(handlers.containsAll(eventHandlers));
         assertFalse(sources.containsAll(eventSources));
 

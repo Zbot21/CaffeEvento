@@ -1,6 +1,6 @@
 package server;
 
-import event_queue.EventQueue;
+import api.event_queue.EventQueue;
 import org.mortbay.jetty.Server;
 
 /**
@@ -17,8 +17,8 @@ public class WebEngine {
        - Register remote events
 
        Potential Steps:
-       - Create a way to register a server service (local jar)
-       - The server service needs to provide:
+       - Create a way to register a server eventQueueInterface (local jar)
+       - The server eventQueueInterface needs to provide:
         - an endpoint for future events (this could be a client of some kind)
         - it needs to be provided with, an endpoint for sending its data (the events that it generates)
 
