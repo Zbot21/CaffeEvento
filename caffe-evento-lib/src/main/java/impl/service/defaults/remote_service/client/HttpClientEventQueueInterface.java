@@ -1,10 +1,7 @@
 package impl.service.defaults.remote_service.client;
 
+import api.event_queue.*;
 import com.google.common.collect.ImmutableMap;
-import api.event_queue.Event;
-import api.event_queue.EventHandler;
-import api.event_queue.EventSink;
-import api.event_queue.EventSource;
 import impl.event_queue.EventQueueInterfaceImpl;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -23,7 +20,7 @@ import static impl.service.defaults.remote_service.server.HttpServerConstants.*;
 /**
  * Created by chris on 7/12/16.
  */
-public abstract class HttpClientEventQueueInterface extends EventQueueInterfaceImpl implements EventSink {
+public abstract class HttpClientEventQueueInterface extends EventQueueInterfaceImpl implements EventQueue.EventSink {
     private HttpClient client;
     private String host;
     private int port;

@@ -18,14 +18,14 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
  * Created by chris on 7/2/16.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest( { EventSink.class, EventImpl.class })
+@PrepareForTest( { EventQueue.EventSink.class, EventImpl.class })
 public class EventSourceTest {
     private EventSource instance = new MockEventSource();
 
     @Mock
     private Event event;
     @Mock
-    private EventSink eventSink;
+    private EventQueue.EventSink eventSink;
 
     @Before
     public void setUp() throws Exception {
@@ -46,7 +46,7 @@ public class EventSourceTest {
     public void testRegisterUnregisterNewListeners() {
         eventSink.receiveEvent(event);
         expectLastCall().times(3);
-        EventSink eventListener = createMock(EventSink.class);
+        EventQueue.EventSink eventListener = createMock(EventQueue.EventSink.class);
         eventListener.receiveEvent(event);
         expectLastCall().once();
 

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by chris on 7/1/16.
  */
-public class EventQueueImpl implements EventQueueInterfaceChangedListener, EventSink, EventQueue {
+public class EventQueueImpl implements EventQueueInterfaceChangedListener, EventQueue.EventSink, EventQueue {
 
     private List<EventQueueInterface> eventQueueInterfaces = new ArrayList<>();
     private List<EventHandler> eventHandlers = new ArrayList<>();

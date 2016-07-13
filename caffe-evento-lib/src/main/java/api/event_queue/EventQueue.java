@@ -17,4 +17,11 @@ public interface EventQueue {
     void removeEventSource(EventSource theEventSource);
 
     void receiveEvent(Event e);
+
+    /**
+     * Created by chris on 7/1/16.
+     */
+    interface EventSink {
+        void receiveEvent(Event e);
+    }
 }
