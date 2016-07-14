@@ -1,5 +1,8 @@
-package api.event_queue;
+package impl.event_queue;
 
+import api.event_queue.Event;
+import api.event_queue.EventQueue;
+import api.event_queue.EventSource;
 import impl.event_queue.EventImpl;
 import impl.event_queue.EventSourceImpl;
 import org.junit.Before;
@@ -19,8 +22,8 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest( { EventQueue.class, EventImpl.class })
-public class EventSourceTest {
-    private EventSource instance = new MockEventSource();
+public class EventSourceImplTest {
+    private EventSource instance = new EventSourceImpl();
 
     @Mock
     private Event event;
@@ -58,11 +61,4 @@ public class EventSourceTest {
         instance.registerEvent(event);
         verifyAll();
     }
-
-    private class MockEventSource extends EventSourceImpl {
-        public void registerEvent(Event theEvent) {
-            super.registerEvent(theEvent);
-        }
-    }
-
 }

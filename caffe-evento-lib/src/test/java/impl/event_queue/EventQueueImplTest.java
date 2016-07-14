@@ -1,4 +1,4 @@
-package services;
+package impl.event_queue;
 
 import com.google.common.collect.Lists;
 import api.event_queue.*;
@@ -29,17 +29,17 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { EventQueueInterfaceImpl.class } )
-public class EventQueueTest {
-    EventQueueImpl instance = EventQueue.getInstance();
+public class EventQueueImplTest {
+    private EventQueue instance = EventQueue.getInstance();
 
     @Mock
-    Event event;
+    private Event event;
 
     @Mock
-    EventQueueInterface eventQueueInterface;
+    private EventQueueInterface eventQueueInterface;
 
-    List<EventHandler> eventHandlers;
-    List<EventSource> eventSources;
+    private List<EventHandler> eventHandlers;
+    private List<EventSource> eventSources;
 
     @Before
     public void setUp() {
@@ -72,7 +72,7 @@ public class EventQueueTest {
         });
 
         replayAll();
-        instance.registerService(eventQueueInterface);
+        instance.addEventQueueInterface(eventQueueInterface);
         instance.receiveEvent(event);
         verifyAll();
     }
@@ -86,7 +86,7 @@ public class EventQueueTest {
         });
 
         replayAll();
-        instance.registerService(eventQueueInterface);
+        instance.addEventQueueInterface(eventQueueInterface);
         instance.receiveEvent(event);
         verifyAll();
     }
@@ -111,7 +111,7 @@ public class EventQueueTest {
         expectLastCall().once();
 
         replayAll();
-        instance.registerService(eventQueueInterface);
+        instance.addEventQueueInterface(eventQueueInterface);
         List<EventQueueInterface> eventQueueInterfaces = Whitebox.getInternalState(instance, "eventQueueInterfaces");
         List<EventHandler> handlers = Whitebox.getInternalState(instance, "eventHandlers");
         List<EventSource> sources = Whitebox.getInternalState(instance, "eventSources");
@@ -119,7 +119,7 @@ public class EventQueueTest {
         assertTrue(handlers.containsAll(eventHandlers));
         assertTrue(sources.containsAll(eventSources));
 
-        instance.unRegisterService(eventQueueInterface);
+        instance.removeEventQueueInterface(eventQueueInterface);
         eventQueueInterfaces = Whitebox.getInternalState(instance, "eventQueueInterfaces");
         handlers = Whitebox.getInternalState(instance, "eventHandlers");
         sources = Whitebox.getInternalState(instance, "eventSources");

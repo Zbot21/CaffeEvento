@@ -3,6 +3,7 @@ package impl.event_queue;
 import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
+import api.service.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,12 @@ public class EventQueueImpl implements EventQueue {
     }
 
     @Override
-    public void registerService(EventQueueInterface theEventQueueInterface) {
+    public void registerService(Service theService) {
+        addEventQueueInterface(theService.getEventQueueInterface());
+    }
+
+    @Override
+    public void addEventQueueInterface(EventQueueInterface theEventQueueInterface) {
         eventQueueInterfaces.add(theEventQueueInterface);
         theEventQueueInterface.getEventHandlers().forEach(this::addEventHandler);
         theEventQueueInterface.getEventSources().forEach(this::addEventSource);
@@ -28,7 +34,13 @@ public class EventQueueImpl implements EventQueue {
     }
 
     @Override
-    public void unRegisterService(EventQueueInterface theEventQueueInterface) {
+    public void unRegisterService(Service theService) {
+        removeEventQueueInterface(theService.getEventQueueInterface());
+
+    }
+
+    @Override
+    public void removeEventQueueInterface(EventQueueInterface theEventQueueInterface) {
         theEventQueueInterface.removeEventQueueInterfaceChangedListener(this);
         theEventQueueInterface.getEventHandlers().forEach(this::removeEventHandler);
         theEventQueueInterface.getEventSources().forEach(this::removeEventSource);

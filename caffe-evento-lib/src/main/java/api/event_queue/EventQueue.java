@@ -1,5 +1,6 @@
 package api.event_queue;
 
+import api.service.Service;
 import impl.event_queue.EventQueueImpl;
 
 /**
@@ -10,15 +11,11 @@ public interface EventQueue extends EventQueueInterfaceChangedListener, EventSin
         return new EventQueueImpl();
     }
 
-    void registerService(EventQueueInterface theEventQueueInterface);
+    void registerService(Service theService);
 
-    void unRegisterService(EventQueueInterface theEventQueueInterface);
+    void unRegisterService(Service theService);
 
-    void addEventHandler(EventHandler theEventHandler);
+    void addEventQueueInterface(EventQueueInterface theEventQueueInterface);
 
-    void removeEventHandler(EventHandler theEventHandler);
-
-    void addEventSource(EventSource theEventSource);
-
-    void removeEventSource(EventSource theEventSource);
+    void removeEventQueueInterface(EventQueueInterface theEventQueueInterface);
 }
