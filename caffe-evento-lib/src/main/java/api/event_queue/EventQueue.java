@@ -1,14 +1,14 @@
 package api.event_queue;
 
-import api.service.Service;
-import impl.event_queue.EventQueueImpl;
+import api.services.Service;
+import impl.event_queue.SynchronousEventQueue;
 
 /**
  * Created by chris on 7/10/16.
  */
 public interface EventQueue extends EventQueueInterfaceChangedListener, EventSink {
-    static EventQueueImpl getInstance() {
-        return new EventQueueImpl();
+    static SynchronousEventQueue getInstance() {
+        return new SynchronousEventQueue();
     }
 
     void registerService(Service theService);

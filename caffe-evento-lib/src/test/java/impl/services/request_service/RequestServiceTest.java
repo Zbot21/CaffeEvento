@@ -1,8 +1,8 @@
-package impl.service.defaults.request_service;
+package impl.services.request_service;
 
 import api.event_queue.*;
 import impl.event_queue.*;
-import impl.service.request_service.RequestService;
+import impl.services.request_service.RequestService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

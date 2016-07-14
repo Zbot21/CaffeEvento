@@ -1,7 +1,7 @@
-package impl.service;
+package impl.services;
 
 import api.event_queue.EventQueueInterface;
-import api.service.Service;
+import api.services.Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

@@ -1,21 +1,6 @@
-package impl.service.defaults.remote_service.client;
+package impl.services.defaults.remote_service.client;
 
-import api.event_queue.*;
-import com.google.common.collect.ImmutableMap;
 import impl.event_queue.EventQueueInterfaceImpl;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.Map;
-
-import static impl.service.defaults.remote_service.server.HttpServerConstants.*;
 
 /**
  * Created by chris on 7/12/16.

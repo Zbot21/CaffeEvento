@@ -3,9 +3,6 @@ package impl.event_queue;
 import com.google.common.collect.Lists;
 import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
-import impl.event_queue.EventQueueInterfaceImpl;
-import impl.event_queue.EventQueueImpl;
-import impl.event_queue.EventSourceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +26,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { EventQueueInterfaceImpl.class } )
-public class EventQueueImplTest {
+public class SynchronousEventQueueTest {
     private EventQueue instance = EventQueue.getInstance();
 
     @Mock

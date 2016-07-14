@@ -1,9 +1,9 @@
-package impl.service.defaults.sensors;
+package impl.services.defaults.sensors;
 
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
 import impl.event_queue.EventSourceImpl;
-import impl.service.AbstractService;
+import impl.services.AbstractService;
 import org.apache.commons.codec.StringDecoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

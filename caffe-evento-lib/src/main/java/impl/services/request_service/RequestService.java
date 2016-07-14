@@ -1,9 +1,8 @@
-package impl.service.request_service;
+package impl.services.request_service;
 
 import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
-import impl.event_queue.EventHandlerImpl;
-import impl.service.AbstractService;
+import impl.services.AbstractService;
 import api.utils.EventBuilder;
 import impl.event_queue.EventImpl;
 import impl.event_queue.EventSourceImpl;

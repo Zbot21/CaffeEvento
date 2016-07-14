@@ -1,7 +1,7 @@
-package impl.service.defaults.remote_service.server;
+package impl.services.defaults.remote_service.server;
 
 import api.event_queue.EventQueueInterface;
-import impl.service.AbstractService;
+import impl.services.AbstractService;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.ServletHandler;
 

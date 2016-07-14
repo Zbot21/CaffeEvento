@@ -1,4 +1,4 @@
-package api.service;
+package api.services;
 
 import api.event_queue.EventQueueInterface;
 

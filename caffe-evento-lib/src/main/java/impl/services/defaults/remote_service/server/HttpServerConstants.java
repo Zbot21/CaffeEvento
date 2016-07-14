@@ -1,4 +1,4 @@
-package impl.service.defaults.remote_service.server;
+package impl.services.defaults.remote_service.server;
 
 /**
  * Created by chris on 7/12/16.

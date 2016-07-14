@@ -1,4 +1,4 @@
-package impl.service.request_service;
+package impl.services.request_service;
 
 /**
  * Created by chris on 7/4/16.

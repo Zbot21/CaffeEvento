@@ -1,4 +1,4 @@
-package impl.service.defaults.remote_service;
+package impl.services.defaults.remote_service;
 
 import api.event_queue.EventQueueInterface;
 import org.apache.commons.logging.Log;
