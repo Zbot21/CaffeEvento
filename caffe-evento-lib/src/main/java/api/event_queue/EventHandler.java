@@ -13,6 +13,7 @@ public interface EventHandler {
     UUID getEventHandlerId();
     Predicate<Event> getHandlerCondition();
     void handleEvent(Event theEvent);
+    String encodeToJson();
 
     static EventHandler fromJson(String json) {
         return EventHandlerImpl.fromJson(json);
