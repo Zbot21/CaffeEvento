@@ -3,7 +3,8 @@ package impl.event_queue;
 import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
-import api.service.Service;
+import api.services.Service;
+import lib.RotatedLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +17,16 @@ public class EventQueueImpl implements EventQueue {
     private List<EventQueueInterface> eventQueueInterfaces = new ArrayList<>();
     private List<EventHandler> eventHandlers = new ArrayList<>();
     private List<EventSource> eventSources = new ArrayList<>();
+    private RotatedLogger<Event> eventLog;
 
     public EventQueueImpl() {
+        eventLog = new RotatedLogger<>();
     }
+
+    public EventQueueImpl(RotatedLogger<Event> eventLog) {
+        this.eventLog = eventLog;
+    }
+
 
     @Override
     public void registerService(Service theService) {
@@ -71,6 +79,8 @@ public class EventQueueImpl implements EventQueue {
 
     @Override
     public synchronized void receiveEvent(Event e) {
+        if(eventLog.contains(e)) return;
+        eventLog.add(e);
         List<EventHandler> tempEventHandlers = new ArrayList<>(eventHandlers);
         tempEventHandlers.stream()
                 .filter(handler -> handler.getHandlerCondition().test(e))
