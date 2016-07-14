@@ -21,48 +21,29 @@ import java.util.function.Predicate;
  * Created by chris on 7/1/16.
  */
 public final class EventHandlerImpl implements EventHandler {
-    private EventHandlerImpl() {} // Haha, nobody can create me now!
     private EventHandlerData eventHandlerData = new EventHandlerData();
     private List<Consumer<Event>> eventConsumers = new ArrayList<>();
     private Log log = LogFactory.getLog(getClass());
 
+    private EventHandlerImpl() {
+    } // Haha, nobody can create me now!
+
+    @Override
     public final UUID getEventHandlerId() {
         return eventHandlerData.getEventHandlerId();
     }
 
-    private void sendHttpEvent(URI destination, Event theEvent) {
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(destination);
-        try {
-            post.addHeader("content-type", "text/json");
-            post.setEntity(new StringEntity(theEvent.encodeEvent()));
-            client.execute(post);
-        } catch (IOException e) {
-            log.error("There was an error sending the event.", e);
-        }
-    }
-
-    private static EventHandler decodeFromEventData(EventHandlerData theEventHandlerData) {
-        EventHandlerImpl handler = new EventHandlerImpl();
-        Optional.ofNullable(theEventHandlerData.httpEventReceiver).map(URI::create)
-                .ifPresent(uri -> handler.addEventConsumer(event -> handler.sendHttpEvent(uri, event)));
-        return handler;
-    }
-
+    @Override
     public String encodeToJson() {
         return new GsonBuilder().create().toJson(eventHandlerData);
     }
 
-    public static EventHandler fromJson(String json) {
-        return decodeFromEventData(new GsonBuilder().create().fromJson(json, EventHandlerData.class));
-    }
-
-    public static EventHandlerBuilder create() {
-        return new EventHandlerBuilder();
-    }
-
-    private void addEventConsumer(Consumer<Event> eventConsumer) {
-        this.eventConsumers.add(eventConsumer);
+    @Override
+    public void handleEvent(Event theEvent) {
+        if (eventConsumers.size() == 0) {
+            log.info("No event consumers registered for event handler with id: " + eventHandlerData.getEventHandlerId());
+        }
+        eventConsumers.forEach(c -> c.accept(theEvent));
     }
 
     @Override
@@ -78,15 +59,38 @@ public final class EventHandlerImpl implements EventHandler {
         return predicates.stream().reduce(event -> true, Predicate::and);
     }
 
-    @Override public void handleEvent(Event theEvent) {
-        if(eventConsumers.size() == 0) {
-            log.info("No event consumers registered for event handler with id: " + eventHandlerData.getEventHandlerId());
+    private void sendHttpEvent(URI destination, Event theEvent) {
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(destination);
+        try {
+            post.addHeader("content-type", "text/json");
+            post.setEntity(new StringEntity(theEvent.encodeEvent()));
+            client.execute(post);
+        } catch (IOException e) {
+            log.error("There was an error sending the event.", e);
         }
-        eventConsumers.forEach(c -> c.accept(theEvent));
+    }
+
+    public static EventHandler fromJson(String json) {
+        return decodeFromEventData(new GsonBuilder().create().fromJson(json, EventHandlerData.class));
+    }
+
+    public static EventHandlerBuilder create() {
+        return new EventHandlerBuilder();
+    }
+
+    private static EventHandler decodeFromEventData(EventHandlerData theEventHandlerData) {
+        EventHandlerImpl handler = new EventHandlerImpl();
+        Optional.ofNullable(theEventHandlerData.httpEventReceiver).map(URI::create)
+                .ifPresent(uri -> handler.addEventConsumer(event -> handler.sendHttpEvent(uri, event)));
+        return handler;
+    }
+
+    private void addEventConsumer(Consumer<Event> eventConsumer) {
+        this.eventConsumers.add(eventConsumer);
     }
 
     private static class EventHandlerData {
-        private EventHandlerData() {}
         private UUID eventHandlerId = UUID.randomUUID();
         private String eventName;
         private String eventType;
@@ -94,23 +98,26 @@ public final class EventHandlerImpl implements EventHandler {
         private String socketEventReceiver;
         private Map<String, String> eventData = new HashMap<>();
 
-        public UUID getEventHandlerId() {
+        private EventHandlerData() {
+        }
+
+        UUID getEventHandlerId() {
             return eventHandlerId;
         }
 
-        public void eventName(String eventName) {
+        void eventName(String eventName) {
             this.eventName = eventName;
         }
 
-        public void eventType(String eventType) {
+        void eventType(String eventType) {
             this.eventType = eventType;
         }
 
-        public void httpEventReceiver(String url) {
+        void httpEventReceiver(String url) {
             this.httpEventReceiver = url;
         }
 
-        public void eventData(String key, String value) {
+        void eventData(String key, String value) {
             this.eventData.put(key, value);
         }
     }
@@ -119,9 +126,11 @@ public final class EventHandlerImpl implements EventHandler {
      * Created by chris on 7/11/16.
      */
     public static class EventHandlerBuilder {
-        private EventHandlerBuilder() {}
         private EventHandlerData eventHandlerData = new EventHandlerData();
         private List<Consumer<Event>> eventConsumers = new ArrayList<>();
+
+        private EventHandlerBuilder() {
+        }
 
         public EventHandler build() {
             EventHandlerImpl handler = new EventHandlerImpl();
