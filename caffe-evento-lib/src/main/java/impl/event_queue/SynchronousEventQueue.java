@@ -15,8 +15,8 @@ import java.util.List;
 public class SynchronousEventQueue implements EventQueue {
 
     private List<EventQueueInterface> eventQueueInterfaces = new ArrayList<>();
-    private List<EventHandler> eventHandlers = new ArrayList<>();
-    private List<EventSource> eventSources = new ArrayList<>();
+    protected List<EventHandler> eventHandlers = new ArrayList<>();
+    protected List<EventSource> eventSources = new ArrayList<>();
 
     public SynchronousEventQueue() {
     }
