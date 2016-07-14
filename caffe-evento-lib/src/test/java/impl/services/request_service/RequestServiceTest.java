@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(PowerMockRunner.class)
 public class RequestServiceTest {
-    private EventQueue eventQueue = EventQueue.getInstance();
+    private EventQueue eventQueue = new SynchronousEventQueue();
     private EventQueueInterface eventQueueInterface = new EventQueueInterfaceImpl();
     private RequestService instance = new RequestService(eventQueueInterface);
     private EventCollector eventCollector = new EventCollector();

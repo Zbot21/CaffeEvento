@@ -27,7 +27,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { EventQueueInterfaceImpl.class } )
 public class SynchronousEventQueueTest {
-    private EventQueue instance = EventQueue.getInstance();
+    private EventQueue instance = new SynchronousEventQueue();
 
     @Mock
     private Event event;

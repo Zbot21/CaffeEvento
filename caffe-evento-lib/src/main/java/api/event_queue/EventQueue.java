@@ -7,9 +7,6 @@ import impl.event_queue.SynchronousEventQueue;
  * Created by chris on 7/10/16.
  */
 public interface EventQueue extends EventQueueInterfaceChangedListener, EventSink {
-    static SynchronousEventQueue getInstance() {
-        return new SynchronousEventQueue();
-    }
 
     void registerService(Service theService);
 
