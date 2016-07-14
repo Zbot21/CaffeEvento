@@ -1,20 +1,21 @@
 package api.event_queue;
 
+import api.service.Service;
+import impl.event_queue.EventQueueImpl;
+
 /**
  * Created by chris on 7/10/16.
  */
-public interface EventQueue extends EventQueueInterfaceChangedListener {
-    void registerService(EventQueueInterface theEventQueueInterface);
+public interface EventQueue extends EventQueueInterfaceChangedListener, EventSink {
+    static EventQueueImpl getInstance() {
+        return new EventQueueImpl();
+    }
 
-    void unRegisterService(EventQueueInterface theEventQueueInterface);
+    void registerService(Service theService);
 
-    void addEventHandler(EventHandler theEventHandler);
+    void unRegisterService(Service theService);
 
-    void removeEventHandler(EventHandler theEventHandler);
+    void addEventQueueInterface(EventQueueInterface theEventQueueInterface);
 
-    void addEventSource(EventSource theEventSource);
-
-    void removeEventSource(EventSource theEventSource);
-
-    void receiveEvent(Event e);
+    void removeEventQueueInterface(EventQueueInterface theEventQueueInterface);
 }

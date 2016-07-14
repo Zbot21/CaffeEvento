@@ -2,6 +2,7 @@ package impl.service.request_service;
 
 import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
+import impl.event_queue.EventHandlerImpl;
 import impl.service.AbstractService;
 import api.utils.EventBuilder;
 import impl.event_queue.EventImpl;

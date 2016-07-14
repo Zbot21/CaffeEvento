@@ -1,6 +1,7 @@
 package test_util;
 
 import api.event_queue.*;
+import impl.event_queue.EventHandlerImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ public class EventCollector{
     private EventHandler handler;
 
     public EventCollector() {
-        handler = EventHandler.create().eventHandler(collectedEvents::add).build();
+        handler = EventHandlerImpl.create().eventHandler(collectedEvents::add).build();
     }
 
     public EventHandler getHandler() {

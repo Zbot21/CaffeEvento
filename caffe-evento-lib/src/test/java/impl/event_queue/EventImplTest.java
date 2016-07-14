@@ -1,6 +1,8 @@
-package api.event_queue;
+package impl.event_queue;
 
-import impl.event_queue.EventImpl;
+import api.event_queue.Event;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -8,15 +10,15 @@ import static org.junit.Assert.*;
 /**
  * Created by chris on 7/1/16.
  */
-public class EventTest {
+public class EventImplTest {
     Event instance;
 
-    @org.junit.Before
+    @Before
     public void setUp() throws Exception {
         instance = new EventImpl();
     }
 
-    @org.junit.After
+    @After
     public void tearDown() throws Exception {
 
     }

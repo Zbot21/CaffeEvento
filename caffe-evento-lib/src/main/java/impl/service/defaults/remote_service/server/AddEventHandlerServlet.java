@@ -18,8 +18,8 @@ public class AddEventHandlerServlet extends ServiceServlet {
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        EventHandler handler = EventHandler.fromJson(req.getReader());
-        eventQueueInterface.addEventHandler(handler);
-        res.getWriter().write(handler.getEventHandlerId().toString()); // Return the event handler id
+//        EventHandler handler = EventHandler.fromJson(req.getReader());
+//        eventQueueInterface.addEventHandler(handler);
+//        res.getWriter().write(handler.getEventHandlerId().toString()); // Return the event handler id
     }
 }
