@@ -30,7 +30,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( { EventQueueInterfaceImpl.class } )
 public class EventQueueTest {
-    EventQueueImpl instance = new EventQueueImpl();
+    EventQueueImpl instance = EventQueue.getInstance();
 
     @Mock
     Event event;

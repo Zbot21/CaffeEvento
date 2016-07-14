@@ -6,9 +6,9 @@ import java.util.UUID;
  * Created by chris on 7/13/16.
  */
 public interface EventSource {
-    void addListener(EventQueue theEventSink);
+    void addListener(EventSink theEventSink);
 
-    void removeListener(EventQueue theEventSink);
+    void removeListener(EventSink theEventSink);
 
     void registerEvent(Event theEvent);
 

@@ -2,6 +2,7 @@ package impl.event_queue;
 
 import api.event_queue.Event;
 import api.event_queue.EventQueue;
+import api.event_queue.EventSink;
 import api.event_queue.EventSource;
 
 import java.util.ArrayList;
@@ -14,15 +15,15 @@ import java.util.UUID;
 public class EventSourceImpl implements EventSource {
     private UUID eventSourceId = UUID.randomUUID();
 
-    private List<EventQueue> eventSinks = new ArrayList<>();
+    private List<EventSink> eventSinks = new ArrayList<>();
 
     @Override
-    public void addListener(EventQueue theEventSink) {
+    public void addListener(EventSink theEventSink) {
         eventSinks.add(theEventSink);
     }
 
     @Override
-    public void removeListener(EventQueue theEventSink) {
+    public void removeListener(EventSink theEventSink) {
         eventSinks.remove(theEventSink);
     }
 

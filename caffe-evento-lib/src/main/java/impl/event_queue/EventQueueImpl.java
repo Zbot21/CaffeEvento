@@ -2,7 +2,6 @@ package impl.event_queue;
 
 import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
-import api.event_queue.EventQueueInterfaceChangedListener;
 import api.event_queue.EventSource;
 
 import java.util.ArrayList;
@@ -16,6 +15,9 @@ public class EventQueueImpl implements EventQueue {
     private List<EventQueueInterface> eventQueueInterfaces = new ArrayList<>();
     private List<EventHandler> eventHandlers = new ArrayList<>();
     private List<EventSource> eventSources = new ArrayList<>();
+
+    public EventQueueImpl() {
+    }
 
     @Override
     public void registerService(EventQueueInterface theEventQueueInterface) {
