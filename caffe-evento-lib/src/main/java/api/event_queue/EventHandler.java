@@ -3,6 +3,7 @@ package api.event_queue;
 import com.google.gson.GsonBuilder;
 import impl.event_queue.EventHandlerImpl;
 
+import java.net.URI;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -14,6 +15,7 @@ public interface EventHandler {
     Predicate<Event> getHandlerCondition();
     void handleEvent(Event theEvent);
     String encodeToJson();
+    void addIpDestination(String uri);
 
     static EventHandler fromJson(String json) {
         return EventHandlerImpl.fromJson(json);

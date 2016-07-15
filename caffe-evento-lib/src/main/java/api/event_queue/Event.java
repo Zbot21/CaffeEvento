@@ -1,6 +1,7 @@
 package api.event_queue;
 
 import com.google.gson.GsonBuilder;
+import impl.event_queue.EventImpl;
 
 import java.io.Reader;
 import java.util.Map;
@@ -28,4 +29,12 @@ public interface Event {
     Map<String, String> getEventDetails();
 
     String encodeEvent();
+
+    public static Event decodeEvent(String theEvent) {
+        return (new GsonBuilder()).create().fromJson(theEvent, EventImpl.class);
+    }
+
+    public static Event decodeEvent(Reader theEvent) {
+        return (new GsonBuilder()).create().fromJson(theEvent, EventImpl.class);
+    }
 }

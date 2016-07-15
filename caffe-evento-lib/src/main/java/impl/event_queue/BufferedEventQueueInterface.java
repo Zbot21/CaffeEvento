@@ -1,8 +1,8 @@
 package impl.event_queue;
 
 import api.event_queue.*;
-import lib.AutoRotatedLogger;
-import lib.RotatedLogger;
+import api.lib.SetLogger;
+import impl.lib.AutoRotatedSetLogger;
 
 import java.util.UUID;
 
@@ -10,19 +10,19 @@ import java.util.UUID;
  * Created by chris on 7/13/16.
  */
 public class BufferedEventQueueInterface extends EventQueueInterfaceImpl implements EventSink{
-    private EventSource internalEventGenerator = new EventSourceImpl();
+    protected EventSource internalEventGenerator = new EventSourceImpl();
     private EventSource externalEventGenerator = new EventSourceImpl();
-    private RotatedLogger<UUID> eventLogger;
+    private SetLogger<UUID> eventLogger;
     private EventQueue bufferEventQueue;
 
     public BufferedEventQueueInterface() {
-        this(new SynchronousEventQueue());
+        this(new SynchronousEventQueue(), new AutoRotatedSetLogger<>());
 
     }
 
-    BufferedEventQueueInterface(EventQueue internalEventQueue) {
+    BufferedEventQueueInterface(EventQueue internalEventQueue, SetLogger<UUID> eventLogger) {
         this.bufferEventQueue = internalEventQueue;
-        this.eventLogger = new AutoRotatedLogger<>();
+        this.eventLogger = eventLogger;
 
         // Forward all external events to the internal event queue
         internalEventQueue.addEventSource(internalEventGenerator);

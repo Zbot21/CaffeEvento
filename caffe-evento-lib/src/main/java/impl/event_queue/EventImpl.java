@@ -30,14 +30,6 @@ public class EventImpl implements Event {
         this.eventType = eventType;
     }
 
-    public static Event decodeEvent(String theEvent) {
-        return (new GsonBuilder()).create().fromJson(theEvent, EventImpl.class);
-    }
-
-    public static Event decodeEvent(Reader theEvent) {
-        return (new GsonBuilder()).create().fromJson(theEvent, EventImpl.class);
-    }
-
     @Override
     public String getEventName(){
         return this.eventName;

@@ -92,7 +92,7 @@ public class RequestService extends AbstractService {
             }
 
             requestId = UUID.fromString(sourceEvent.getEventField(REQUEST_ID_FIELD));
-            Event fufillmentEvent = EventImpl.decodeEvent(sourceEvent.getEventField(REQUEST_EVENT_FUFILLMENT));
+            Event fufillmentEvent = Event.decodeEvent(sourceEvent.getEventField(REQUEST_EVENT_FUFILLMENT));
             fufillmentEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
 
             // Event handler success

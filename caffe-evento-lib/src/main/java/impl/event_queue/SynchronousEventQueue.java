@@ -4,7 +4,6 @@ import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
 import api.services.Service;
-import lib.RotatedLogger;
 
 import java.util.ArrayList;
 import java.util.List;

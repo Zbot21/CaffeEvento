@@ -39,6 +39,11 @@ public final class EventHandlerImpl implements EventHandler {
     }
 
     @Override
+    public void addIpDestination(String url) {
+        eventHandlerData.httpEventReceiver = url;
+    }
+
+    @Override
     public void handleEvent(Event theEvent) {
         if (eventConsumers.size() == 0) {
             log.info("No event consumers registered for event handler with id: " + eventHandlerData.getEventHandlerId());
