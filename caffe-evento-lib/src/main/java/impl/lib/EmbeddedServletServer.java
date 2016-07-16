@@ -47,19 +47,22 @@ public final class EmbeddedServletServer {
         servletHandler.addServletWithMapping(servletHolder, endpoint);
     }
 
-    public void start() {
+    public void asyncStart() {
         new Thread() {
             @Override
             public void run() {
-                try {
-                    server.start();
-                    server.join();
-                } catch (Exception e) {
-                    log.error("There was an error trying to run the server.", e);
-                }
-
+                syncStart();
             }
         }.start();
+    }
+
+    public void syncStart() {
+        try {
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            log.error("There was an error trying to run the server.", e);
+        }
     }
 
     public void stop() {

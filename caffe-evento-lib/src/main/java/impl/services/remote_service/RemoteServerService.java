@@ -4,7 +4,6 @@ import api.event_queue.Event;
 import api.event_queue.EventHandler;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
-import api.utils.EventBuilder;
 import impl.event_queue.EventQueueInterfaceImpl;
 import impl.event_queue.EventSourceImpl;
 import impl.lib.EmbeddedServletServer;
@@ -12,13 +11,14 @@ import impl.services.AbstractService;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Created by chris on 7/14/16.
  */
 public class RemoteServerService extends AbstractService {
     private EmbeddedServletServer server;
-    private String serverId;
+    private UUID serverId = UUID.randomUUID();
     private EventSource eventGenerator;
 
     public RemoteServerService() {
@@ -33,17 +33,15 @@ public class RemoteServerService extends AbstractService {
 
         getEventQueueInterface().addEventHandler(EventHandler.create()
                 .eventType("CREATE_EVENT_HANDLER")
-                .eventData("serverId", serverId)
+                .eventData("serverId", serverId.toString())
                 .eventHandler(event -> Optional.ofNullable(event.getEventField("EVENT_HANDLER_DETAILS"))
                         .ifPresent(data -> getEventQueueInterface().addEventHandler(EventHandler.fromJson(data))))
                 .build());
 
-        // TODO: assign server id
-
         // Add a servlet for getting the server id
         server.addServletConsumer("/getServerId", (req, res) -> {
             try {
-                res.getWriter().write(serverId);
+                res.getWriter().write(serverId.toString());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -61,7 +59,7 @@ public class RemoteServerService extends AbstractService {
     }
 
     public void startServer() {
-        server.start();
+        server.asyncStart();
     }
 
     public void stopServer() {
