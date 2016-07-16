@@ -60,10 +60,6 @@ public class EventImpl implements Event {
     }
 
     @Override
-    public UUID randomizeId() {
-        return eventId.randomUUID();
-    }
-    @Override
     public UUID getEventId() {
         return eventId;
     }
