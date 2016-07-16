@@ -2,6 +2,8 @@ package impl.event_queue;
 
 import api.event_queue.Event;
 import api.event_queue.EventHandler;
+import com.google.common.base.*;
+import com.google.common.base.Objects;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -13,6 +15,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -57,9 +60,12 @@ public final class EventHandlerImpl implements EventHandler {
 
         Optional.ofNullable(eventHandlerData.eventName).map(name -> (Predicate<Event>) event -> event.getEventName().equals(name)).ifPresent(predicates::add);
         Optional.ofNullable(eventHandlerData.eventType).map(type -> (Predicate<Event>) event -> event.getEventType().equals(type)).ifPresent(predicates::add);
-        eventHandlerData.eventData.entrySet().stream().forEach(entry -> predicates.add(event -> Optional.ofNullable(event.getEventField(entry.getKey()))
-                .map(field -> field.equals(entry.getValue())).orElse(false))
-        );
+        for(Map.Entry<String, String> expectedEntry : eventHandlerData.eventData.entrySet()) {
+            String eKey = expectedEntry.getKey();
+            String eValue = expectedEntry.getValue();
+            Predicate<Event> predicate = event -> Optional.ofNullable(event.getEventField(eKey)).map(v -> v.equals(eValue)).orElse(false);
+            predicates.add(predicate);
+        }
 
         return predicates.stream().reduce(event -> true, Predicate::and);
     }
@@ -88,6 +94,7 @@ public final class EventHandlerImpl implements EventHandler {
         EventHandlerImpl handler = new EventHandlerImpl();
         Optional.ofNullable(theEventHandlerData.httpEventReceiver).map(URI::create)
                 .ifPresent(uri -> handler.addEventConsumer(event -> handler.sendHttpEvent(uri, event)));
+        handler.eventHandlerData = theEventHandlerData;
         return handler;
     }
 
