@@ -5,14 +5,13 @@ import api.event_queue.EventHandler;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
 import api.utils.EventBuilder;
+import com.google.common.collect.Iterables;
 import impl.event_queue.EventImpl;
 import impl.event_queue.EventSourceImpl;
 import impl.services.AbstractService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
@@ -20,9 +19,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.IntPredicate;
 
 /**
@@ -37,7 +33,7 @@ import java.util.function.IntPredicate;
 // TODO: Add ability for ScheduledEvent to occur more than once (periodically)
 
 public class SchedulerService extends AbstractService {
-    public static final String DATE_FORMAT = "dow mon dd hh:mm:ss zzz yyyy";
+    public static final String DATE_FORMAT = "EEE MMM dd hh:mm:ss zzz yyyy";
 
     /* Schedule Event Types */
     public static final String SCHEDULE_EVENT_TYPE = "SCHEDULE";
@@ -45,26 +41,10 @@ public class SchedulerService extends AbstractService {
     public static final String SCHEDULE_EVENT_CANCELED = "ACTION_UNSCHEDULED";
 
     /* Schedule Fields */
+    // Mandatory field in SCHEDULE event types describing the action to take
     public static final String SCHEDULED_EVENT_ACTION = "SCHEDULED_ACTION";
+    // Field used only in UNSCHEDULE event types
     public static final String SCHEDULE_ID_FIELD = "SCHEDULER_ID";
-
-    /* (soon to be) Optional Fields */
-
-    //sets the time of the first occurence of ScheduledEvent, if not present then ScheduledEvent is Scheduled to occur immediately
-    public static final String SCHEDULER_TIME_FIELD = "SCHEDULED_TIME";
-    //sets minimum time to first instance from when SchedulerService recieves the Event, overrides ScheduledTime if later.
-    public static final String SCHEDULER_DELAY_FIELD = "DELAY";
-
-    //sets the period between event recurrences, if not specified the ScheduledEvent does not repeat
-    public static final String SCHEDULER_REPEAT_PERIOD = "PERIOD";
-
-    //sets time at which the last ScheduledEvent may occur. If this is after the current time then the ScheduledEvent never happens.
-    public static final String SCHEDULER_END_TIME_FIELD = "SCHEDULED_END_TIME";
-    //sets maximum time during which ScheduledEvent can repeat after first occurence, overrides Scheduled end time if shorter
-    public static final String SCHEDULER_MAXDURATION_FIELD = "MAX_DURATION";
-
-    //gives the maximum number of times which the event can repeat. If maximum repetitions are reached before time limits then ScheduledEvent stops occuring.
-    public static final String SCHEDULER_REPEATS = "MAX_REPEATS";
 
     /* (optional) Fields Added to ScheduledEvent */
     public static final String SCHEDULED_EVENT_ITERATION = "SCHEDULED_EVENT_ITERATION";
@@ -98,8 +78,10 @@ public class SchedulerService extends AbstractService {
     public static Event generateSchedulerEvent(String eventName, Event actionEvent, Map<String, String> arguments) {
         EventBuilder schedulerBuilder = EventBuilder.create();
         schedulerBuilder.name(eventName)
-                .type(SCHEDULE_EVENT_TYPE);
-        arguments.forEach((a,b) -> schedulerBuilder.data(a,b));
+                .type(SCHEDULE_EVENT_TYPE)
+                .data(SCHEDULE_ID_FIELD, UUID.randomUUID().toString())
+                .data(SCHEDULED_EVENT_ACTION, actionEvent.encodeEvent());
+        arguments.forEach(schedulerBuilder::data);
         return schedulerBuilder.build();
     }
 
@@ -107,7 +89,8 @@ public class SchedulerService extends AbstractService {
         return EventBuilder.create()
                 .name(eventName)
                 .type(SCHEDULE_EVENT_CANCEL_TYPE)
-                .data(SCHEDULE_ID_FIELD, schedulerId.toString()).build();
+                .data(SCHEDULE_ID_FIELD, schedulerId.toString())
+                .build();
     }
 
     public int numberOfActiveSchedulers() {
@@ -158,13 +141,15 @@ public class SchedulerService extends AbstractService {
                     // stop timer after final execution.
                     eventTimer.cancel();
                 }
-            }, Date.from(Instant.now().plus(getDelay(sourceEvent.getEventField(SCHEDULER_TIME_FIELD), sourceEvent.getEventField(SCHEDULER_DELAY_FIELD), e -> e>0))));
+            }, Date.from(Instant.now().plus(getDelay(sourceEvent.getEventField(SCHEDULER_FIELD.START_TIME.toString()), sourceEvent.getEventField(SCHEDULER_FIELD.DELAY.toString()), e -> e>0))));
         }
 
         private Event createSchedulerCanceledEvent() {
-            Event canceledEvent =  new EventImpl("Canceled Scheduler " + schedulerId, SCHEDULE_EVENT_CANCELED);
-            canceledEvent.setEventField(SCHEDULE_ID_FIELD, schedulerId.toString());
-            return canceledEvent;
+            return EventBuilder.create()
+                    .name("Canceled Scheduler " + schedulerId)
+                    .type(SCHEDULE_EVENT_CANCELED)
+                    .data(SCHEDULE_ID_FIELD, schedulerId.toString())
+                    .build();
         }
 
         public UUID getSchedulerId(){

@@ -1,11 +1,12 @@
 package impl.services.scheduler_service;
 
 /**
+ * Optional fields for SchedulerService
  * Created by eric on 7/16/16.
  */
 public enum SCHEDULER_FIELD {
     //sets the time of the first occurence of ScheduledEvent, if not present then ScheduledEvent is Scheduled to occur immediately
-    TIME("SCHEDULED_TIME"),
+    START_TIME("SCHEDULED_TIME"),
     //sets minimum time to first instance from when SchedulerService recieves the Event, overrides ScheduledTime if later.
     DELAY("DELAY"),
     //sets the period between event recurrences, if not specified the ScheduledEvent does not repeat

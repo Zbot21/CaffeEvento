@@ -15,11 +15,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import test_util.EventCollector;
 
 import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.Thread.sleep;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.Assert.*;
 
 /** TODO:Implement tests.
@@ -46,11 +48,14 @@ public class SchedulerServiceTest {
 
         //Clunky at best
         Map<String, String> params = new HashMap<>();
-        params.put(SchedulerService.SCHEDULER_TIME_FIELD, Date.from(Instant.now()).toString());
+        params.put(SCHEDULER_FIELD.START_TIME.toString(), Date.from(Instant.now().plus(1, SECONDS)).toString());
         Event schedulerEvent = SchedulerService.generateSchedulerEvent("Test Schedule", scheduledEvent, params);
 
         eventGenerator.registerEvent(schedulerEvent);
-        sleep(100);
+        assertEquals("unregistered scheduler too early", 1, instance.numberOfActiveSchedulers());
+        assertEquals("registered scheduledEvent too early", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
+        sleep(1050);
+        assertEquals("activeScheduler not removed", 0, instance.numberOfActiveSchedulers());
         assertEquals(1, eventCollector.findEventsWithName("Test Schedule Doer").size());
     }
 
