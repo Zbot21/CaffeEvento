@@ -5,6 +5,7 @@ import api.event_queue.EventHandler;
 import com.google.common.base.*;
 import com.google.common.base.Objects;
 import com.google.gson.GsonBuilder;
+import com.sun.deploy.util.OrderedHashSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.HttpClient;
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * This has to be abstract in order to allow for transparent serialization over the network.
@@ -63,7 +65,21 @@ public final class EventHandlerImpl implements EventHandler {
         for(Map.Entry<String, String> expectedEntry : eventHandlerData.eventData.entrySet()) {
             String eKey = expectedEntry.getKey();
             String eValue = expectedEntry.getValue();
-            Predicate<Event> predicate = event -> Optional.ofNullable(event.getEventField(eKey)).map(v -> v.equals(eValue)).orElse(false);
+            Predicate<Event> predicate = event -> Optional.ofNullable(event.getEventField(eKey))
+                    .map(v -> v.equals(eValue)).orElse(false);
+            predicates.add(predicate);
+        }
+
+        for(String expectedKey : eventHandlerData.hasKeys) {
+            Predicate<Event> predicate = event -> Optional.ofNullable(event.getEventField(expectedKey)).isPresent();
+            predicates.add(predicate);
+        }
+
+        for(Map.Entry<String, String> expectedLikeEntry : eventHandlerData.eventDataLike.entrySet()) {
+            String eKey = expectedLikeEntry.getKey();
+            String eValue = expectedLikeEntry.getValue();
+            Predicate<Event> predicate = event -> Optional.ofNullable(event.getEventField(eKey))
+                    .map(field -> Pattern.matches(eValue, field)).orElse(false);
             predicates.add(predicate);
         }
 
@@ -109,6 +125,8 @@ public final class EventHandlerImpl implements EventHandler {
         private String httpEventReceiver;
         private String socketEventReceiver;
         private Map<String, String> eventData = new HashMap<>();
+        private Map<String, String> eventDataLike = new HashMap<>();
+        private Set<String> hasKeys = new HashSet<>();
 
         private EventHandlerData() {
         }
@@ -132,6 +150,14 @@ public final class EventHandlerImpl implements EventHandler {
         void eventData(String key, String value) {
             this.eventData.put(key, value);
         }
+
+        void eventDataLike(String key, String value) {
+            this.eventDataLike.put(key, value);
+        }
+
+        void hasKeys(String key) {
+            this.hasKeys.add(key);
+        }
     }
 
     /**
@@ -144,6 +170,10 @@ public final class EventHandlerImpl implements EventHandler {
         private EventHandlerBuilder() {
         }
 
+        /**
+         * Builds the event handler builder with the event data
+         * @return EventHandler containing data created by this builder
+         */
         public EventHandler build() {
             EventHandlerImpl handler = new EventHandlerImpl();
             handler.eventHandlerData = eventHandlerData;
@@ -151,26 +181,75 @@ public final class EventHandlerImpl implements EventHandler {
             return handler;
         }
 
+        /**
+         * Match for the event name
+         * @param name the event name to match
+         * @return EventHandlerBuilder
+         */
         public EventHandlerBuilder eventName(String name) {
             eventHandlerData.eventName(name);
             return this;
         }
 
+        /**
+         * Match for the event type
+         * @param type the event type to match
+         * @return EventHandlerBuilder
+         */
         public EventHandlerBuilder eventType(String type) {
             eventHandlerData.eventType(type);
             return this;
         }
 
+        /**
+         * The http endpoint where the event should be received
+         * @param httpEventReceiver the http endpoint to send the events to
+         * @return EventHandlerBuilder
+         */
         public EventHandlerBuilder httpEventReceiver(String httpEventReceiver) {
             eventHandlerData.httpEventReceiver(httpEventReceiver);
             return this;
         }
 
+        /**
+         * Event data at key is matched with the value
+         * @param key key to look for value at
+         * @param value value to match
+         * @return EventHandlerBuilder
+         */
         public EventHandlerBuilder eventData(String key, String value) {
             eventHandlerData.eventData(key, value);
             return this;
         }
 
+        /**
+         * Key is the key to check, value is a regular expression attempting to match that key.
+         * If the key does not exist, then the event handler will not handle the event.
+         * @param key key to look for value at
+         * @param value regular expression to use for matching
+         * @return EventHandlerBuilder
+         */
+        public EventHandlerBuilder eventDataLike(String key, String value) {
+            eventHandlerData.eventDataLike(key, value);
+            return this;
+        }
+
+        /**
+         * Checks if the event has the data key
+         * @param key the data key to check for
+         * @return EventHanderBuilder
+         */
+        public EventHandlerBuilder hasDataKey(String key) {
+            eventHandlerData.hasKeys(key);
+            return this;
+        }
+
+        /**
+         * Adds a handler action to the event handler, this is fired when the conditions of the event
+         * handler are met
+         * @param consumer what to do with the event and its data once it is received
+         * @return EventHandlerBuilder
+         */
         public EventHandlerBuilder eventHandler(Consumer<Event> consumer) {
             eventConsumers.add(consumer);
             return this;
