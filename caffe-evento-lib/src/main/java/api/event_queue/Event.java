@@ -25,6 +25,8 @@ public interface Event {
 
     String getEventField(String field);
 
+    UUID randomizeId();
+
     UUID getEventId();
 
     Map<String, String> getEventDetails();

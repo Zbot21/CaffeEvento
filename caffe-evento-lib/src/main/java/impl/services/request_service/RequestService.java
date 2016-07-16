@@ -115,7 +115,7 @@ public class RequestService extends AbstractService {
                             activeRequests.remove(requestId);
                             requestEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e)); // Do not replace with method reference
                         } else {
-                            eventGenerator.registerEvent(fufillmentEvent);
+                            eventGenerator.registerEvent(new EventImpl(fufillmentEvent));
                         }
                     }).build();
 

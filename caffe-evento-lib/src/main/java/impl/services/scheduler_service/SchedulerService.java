@@ -157,7 +157,7 @@ public class SchedulerService extends AbstractService {
             // this part only allows the ScheduledEvent to occur once, modify this to allow repeated events
             eventTimer.schedule(new TimerTask() {
                 public void run() {
-                    eventGenerator.registerEvent(scheduledEvent);
+                    eventGenerator.registerEvent(new EventImpl(scheduledEvent));
                     /* Final Iteration */
                     // Unregister the canceled EventHandler upon final execution
                     SchedulerEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));

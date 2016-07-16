@@ -30,6 +30,12 @@ public class EventImpl implements Event {
         this.eventType = eventType;
     }
 
+    public EventImpl(Event e) {
+        this.eventName = e.getEventName();
+        this.eventType = e.getEventType();
+        this.eventDetails = e.getEventDetails();
+    }
+
     @Override
     public String getEventName(){
         return this.eventName;
@@ -53,6 +59,10 @@ public class EventImpl implements Event {
         return eventDetails.get(field);
     }
 
+    @Override
+    public UUID randomizeId() {
+        return eventId.randomUUID();
+    }
     @Override
     public UUID getEventId() {
         return eventId;
