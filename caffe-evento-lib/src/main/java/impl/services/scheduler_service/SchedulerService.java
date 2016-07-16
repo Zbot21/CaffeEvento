@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This service takes a schedule event and generates scheduled events
@@ -38,20 +39,31 @@ public class SchedulerService extends AbstractService {
     public static final String SCHEDULE_ID_FIELD = "SCHEDULER_ID";
 
     /* (soon to be) Optional Fields */
-    //sets the time of the first occurence of ScheduledEvent
+
+    //default time unit to use with relative options such as SCHEDULER_DELAY_FIELD, SCHEDULER_REPEAT_PERIOD, and SCHEDULER_MAXDURATION_FIELD. If not present defaults to milliseconds
+    public static final String SCHEDULER_TIME_UNIT = "TIME_UNIT";
+
+    //sets the time of the first occurence of ScheduledEvent, if not present then ScheduledEvent is Scheduled to occur immediately
     public static final String SCHEDULER_TIME_FIELD = "SCHEDULED_TIME";
-    //sets minimum time in milliseconds to first instance from when SchedulerService recieves the Event, overrides ScheduledTime if later
+    //sets minimum time to first instance from when SchedulerService recieves the Event, overrides ScheduledTime if later.
     public static final String SCHEDULER_DELAY_FIELD = "DELAY";
+    //sets time unit for the SCHEDULER_DELAY_FIELD, if not present defaults to SCHEDULER_TIME_UNIT
+    public static final String SCHEDULER_DELAY_UNIT = "DELAY_TIME_UNIT";
+
+    //sets the period between event recurrences, if not specified the ScheduledEvent does not repeat
+    public static final String SCHEDULER_REPEAT_PERIOD = "PERIOD";
+    //sets time unit for the SCHEDULER_REPEAT_FIELD, if not present defaults to SCHEDULER_TIME_UNIT
+    public static final String SCHEDULER_REPEAT_UNIT = "PERIOD_TIME_UNIT";
+
     //sets time at which the last ScheduledEvent may occur. If this is after the current time then the ScheduledEvent never happens.
     public static final String SCHEDULER_END_TIME_FIELD = "SCHEDULED_END_TIME";
     //sets maximum time during which ScheduledEvent can repeat after first occurence, overrides Scheduled end time if shorter
     public static final String SCHEDULER_MAXDURATION_FIELD = "MAX_DURATION";
-    //sets the period between event recurrences, if not specified the ScheduledEvent does not repeat
-    public static final String SCHEDULER_REPEAT_PERIOD = "PERIOD";
-    //sets the maximum number of times which an event can repeat, overrides scheduled end time and max duration if fewer
-    public static final String SCHEDULER_REPEAT_LIMIT = "REPEATED_EVENT_LIMIT";
-    //gives the number of times which the event will repeat, overrides scheduler repeat limit if fewer.
-    public static final String SCHEDULER_REPEATS = "REPEATS";
+    //sets time unit for the SCHEDULER_MAXDURATION_FIELD, if not present defaults to SCHEDULER_TIME_UNIT
+    public static final String SCHEDULER_DURATION_UNIT = "DURATION_TIME_UNIT";
+
+    //gives the maximum number of times which the event can repeat. If maximum repetitions are reached before time limits then ScheduledEvent stops occuring.
+    public static final String SCHEDULER_REPEATS = "MAX_REPEATS";
 
     /* (optional) Fields Added to ScheduledEvent */
     public static final String SCHEDULED_EVENT_ITERATION = "SCHEDULED_EVENT_ITERATION";
@@ -80,11 +92,31 @@ public class SchedulerService extends AbstractService {
                 }).build());
     }
 
-    public static Event generateSchedulerEvent(String eventName, Event actionEvent) {
+    //TODO: Repair generateSchedulerEvent(...) so that it creates USEABLE events.
+    //TODO: Refactor code so I don't have so much repetition.
+    private static EventBuilder generateSchedulerEventbuilder(String eventName, Event actionEvent) {
         return EventBuilder.create()
                 .name(eventName).type(SCHEDULE_EVENT_TYPE)
                 .data(SCHEDULED_EVENT_ACTION, actionEvent.encodeEvent())
-                .data(SCHEDULE_ID_FIELD, UUID.randomUUID().toString())
+                .data(SCHEDULE_ID_FIELD, UUID.randomUUID().toString());
+    }
+
+    public static Event generateSchedulerEvent(String eventName, Event actionEvent, Date scheduledTime) {
+        return generateSchedulerEventbuilder(eventName, actionEvent)
+                .data(SCHEDULER_TIME_FIELD, scheduledTime.toString())
+                .build();
+    }
+
+    public static Event generateSchedulerEvent(String eventName, Event actionEvent, Date scheduledTime, Date scheduledEndTime) {
+        return generateSchedulerEventbuilder(eventName, actionEvent)
+                .data(SCHEDULER_TIME_FIELD, scheduledTime.toString())
+                .data(SCHEDULER_END_TIME_FIELD, scheduledEndTime.toString())
+                .build();
+    }
+
+    public static Event generateSchedulerEvent(String eventName, Event actionEvent, long delay) {
+        return generateSchedulerEventbuilder(eventName, actionEvent)
+                .data(SCHEDULER_DELAY_FIELD, String.valueOf(delay))
                 .build();
     }
 
@@ -109,9 +141,12 @@ public class SchedulerService extends AbstractService {
             if (sourceEvent.getEventField(SCHEDULE_ID_FIELD) == null) {
                 throw new SchedulerException("No Scheduler ID field.");
             }
+
             if (sourceEvent.getEventField(SCHEDULER_TIME_FIELD) == null) {
-                throw new SchedulerException("No time specified.");
+                throw new SchedulerException("No start time specified.");
             }
+
+            // this try-catch needs to be bypassed if using SCHEDULER_DELAY_FIELD instead of SCHEDULER_TIME_FIELD
             try {
                 scheduledTime = new SimpleDateFormat(DATE_FORMAT).parse(sourceEvent.getEventField(SCHEDULER_TIME_FIELD));
             } catch(ParseException e) {
