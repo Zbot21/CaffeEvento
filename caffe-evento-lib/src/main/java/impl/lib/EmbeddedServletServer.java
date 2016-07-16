@@ -30,6 +30,7 @@ public final class EmbeddedServletServer {
     public EmbeddedServletServer(int port) {
         server = new Server(port);
         servletHandler = new ServletHandler();
+        server.addHandler(servletHandler);
         log = LogFactory.getLog(getClass());
     }
 
@@ -52,7 +53,6 @@ public final class EmbeddedServletServer {
             public void run() {
                 try {
                     server.start();
-                    log.info("Server started.");
                     server.join();
                 } catch (Exception e) {
                     log.error("There was an error trying to run the server.", e);
@@ -65,7 +65,6 @@ public final class EmbeddedServletServer {
     public void stop() {
         try {
             server.stop();
-            log.info("Server stopped");
         } catch (Exception e) {
             log.error("There was an error trying to shut down the server", e);
         }
