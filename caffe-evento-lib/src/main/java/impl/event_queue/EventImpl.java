@@ -64,6 +64,11 @@ public class EventImpl implements Event {
     }
 
     @Override
+    public Date getEventTimestamp() {
+        return timestamp;
+    }
+
+    @Override
     public String encodeEvent() {
         return (new GsonBuilder()).create().toJson(this);
     }

@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import impl.event_queue.EventImpl;
 
 import java.io.Reader;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,6 +28,8 @@ public interface Event {
     UUID getEventId();
 
     Map<String, String> getEventDetails();
+
+    Date getEventTimestamp();
 
     String encodeEvent();
 
