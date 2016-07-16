@@ -14,7 +14,6 @@ import org.apache.commons.logging.LogFactory;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This service takes a schedule event and generates scheduled events
@@ -94,30 +93,15 @@ public class SchedulerService extends AbstractService {
 
     //TODO: Repair generateSchedulerEvent(...) so that it creates USEABLE events.
     //TODO: Refactor code so I don't have so much repetition.
-    private static EventBuilder generateSchedulerEventbuilder(String eventName, Event actionEvent) {
-        return EventBuilder.create()
-                .name(eventName).type(SCHEDULE_EVENT_TYPE)
-                .data(SCHEDULED_EVENT_ACTION, actionEvent.encodeEvent())
-                .data(SCHEDULE_ID_FIELD, UUID.randomUUID().toString());
-    }
-
-    public static Event generateSchedulerEvent(String eventName, Event actionEvent, Date scheduledTime) {
-        return generateSchedulerEventbuilder(eventName, actionEvent)
-                .data(SCHEDULER_TIME_FIELD, scheduledTime.toString())
-                .build();
-    }
-
-    public static Event generateSchedulerEvent(String eventName, Event actionEvent, Date scheduledTime, Date scheduledEndTime) {
-        return generateSchedulerEventbuilder(eventName, actionEvent)
-                .data(SCHEDULER_TIME_FIELD, scheduledTime.toString())
-                .data(SCHEDULER_END_TIME_FIELD, scheduledEndTime.toString())
-                .build();
-    }
-
-    public static Event generateSchedulerEvent(String eventName, Event actionEvent, long delay) {
-        return generateSchedulerEventbuilder(eventName, actionEvent)
-                .data(SCHEDULER_DELAY_FIELD, String.valueOf(delay))
-                .build();
+    public static Event generateSchedulerEvent(String eventName, Event actionEvent, Map<String, String> arguments) {
+        EventBuilder schedulerBuilder = EventBuilder.create();
+        schedulerBuilder.name(eventName)
+                .type(SCHEDULE_EVENT_TYPE);
+        // this feels clunky
+        for (Map.Entry<String, String> a:arguments.entrySet()){
+            schedulerBuilder.data(a.getKey(),a.getValue());
+        }
+        return schedulerBuilder.build();
     }
 
     public static Event generateSchedulerCancelEvent(String eventName, UUID schedulerId) {

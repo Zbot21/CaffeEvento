@@ -15,8 +15,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import test_util.EventCollector;
 
 import java.time.Instant;
-import java.util.Date;
+import java.util.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
 import static org.junit.Assert.*;
 
 /** TODO:Implement tests.
@@ -38,22 +41,17 @@ public class SchedulerServiceTest {
     }
 
     @Test
-    public void testGenerateSchedulerEvent() throws Exception {
-        throw new Exception("Test not implemented.");
-    }
-
-    @Test
-    public void testGenerateSchedulerCancelEvent() throws Exception {
-        throw new Exception("Test not implemented.");
-    }
-
-    @Test
     public void testScheduleEvent() throws Exception {
         Event scheduledEvent = new EventImpl("Test Schedule Doer", "TestReq");
-        Event schedulerEvent = SchedulerService.generateSchedulerEvent("Test Schedule", scheduledEvent, Date.from(Instant.now()));
+
+        //Clunky at best
+        Map<String, String> params = new HashMap<>();
+        params.put(SchedulerService.SCHEDULER_TIME_FIELD, Date.from(Instant.now()).toString());
+        Event schedulerEvent = SchedulerService.generateSchedulerEvent("Test Schedule", scheduledEvent, params);
+
         eventGenerator.registerEvent(schedulerEvent);
+        sleep(100);
         assertEquals(1, eventCollector.findEventsWithName("Test Schedule Doer").size());
-        throw new Exception("Test not implemented.");
     }
 
     @Test
