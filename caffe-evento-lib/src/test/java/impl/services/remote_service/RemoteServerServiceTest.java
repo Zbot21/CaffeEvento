@@ -1,6 +1,7 @@
 package impl.services.remote_service;
 
 import api.event_queue.*;
+import api.lib.EmbeddedServletServer;
 import api.utils.EventBuilder;
 import impl.event_queue.EventQueueInterfaceImpl;
 import impl.event_queue.EventSourceImpl;
@@ -20,7 +21,9 @@ import org.junit.Before;
 import org.junit.Test;
 import test_util.EventCollector;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +38,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
  */
 public class RemoteServerServiceTest {
     private static final int port = 2345;
+    private static final int rxPort = 2346;
     private EventQueue eventQueue = new SynchronousEventQueue();
     private EventQueueInterface eventQueueInterface = new EventQueueInterfaceImpl();
     private RemoteServerService instance =
@@ -42,6 +46,8 @@ public class RemoteServerServiceTest {
     private HttpClient client;
     private EventCollector eventCollector = new EventCollector();
     private EventSource eventInjector = new EventSourceImpl();
+    private EmbeddedServletServer receivingService = new EmbeddedServletServerImpl(rxPort);
+    private final List<Event> receivedEvents = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception {
@@ -50,11 +56,20 @@ public class RemoteServerServiceTest {
         eventQueue.addEventSource(eventInjector);
         eventQueue.addEventHandler(eventCollector.getHandler());
         instance.startServer();
+        receivingService.addServletConsumer("/receiveEvent", (req, res) -> {
+            try {
+                receivedEvents.add(Event.decodeEvent(req.getReader()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        receivingService.asyncStart();
         Thread.sleep(50);
     }
 
     @After
     public void tearDown() throws Exception {
+        receivingService.stop();
         instance.stopServer();
     }
 
@@ -116,7 +131,10 @@ public class RemoteServerServiceTest {
 
     @Test
     public void testAddEventHandlerNetwork() throws Exception {
-        EventHandler handler = EventHandler.create().hasDataKey("TEST").build();
+        EventHandler handler = EventHandler.create().hasDataKey("TEST")
+                .httpEventReceiver("http://localhost:"+rxPort+"/receiveEvent")
+                .build();
+
         Event createEvent = EventBuilder.create().name("Create Event Handler Event")
                 .type("CREATE_EVENT_HANDLER")
                 .data("serverId", instance.getServerId().toString())
@@ -136,11 +154,20 @@ public class RemoteServerServiceTest {
 
         Event testEvent = createMock(Event.class);
         expect(testEvent.getEventField("TEST")).andReturn("Some data").anyTimes();
+
+        Event testSentEvent = EventBuilder.create().name("funny reference").type("funny things")
+                .data("TEST", "Some data").build();
+        eventInjector.registerEvent(testSentEvent);
+
         replayAll();
         assertEquals(true, handler.getHandlerCondition().test(testEvent));
         assertEquals(true, rxHandler.getHandlerCondition().test(testEvent));
         assertEquals(false, handler.getHandlerCondition().test(createEvent));
         assertEquals(false, rxHandler.getHandlerCondition().test(createEvent));
+        assertEquals(1, receivedEvents.size());
+        assertEquals(testSentEvent.getEventId(), receivedEvents.get(0).getEventId());
+        assertEquals("funny reference", receivedEvents.get(0).getEventName());
+        assertEquals("funny things", receivedEvents.get(0).getEventType());
         verifyAll();
     }
 }
