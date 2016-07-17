@@ -6,7 +6,8 @@ import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
 import impl.event_queue.EventQueueInterfaceImpl;
 import impl.event_queue.EventSourceImpl;
-import impl.lib.EmbeddedServletServer;
+import api.lib.EmbeddedServletServer;
+import impl.lib.EmbeddedServletServerImpl;
 import impl.services.AbstractService;
 
 import java.io.IOException;
@@ -21,21 +22,48 @@ public class RemoteServerService extends AbstractService {
     private UUID serverId = UUID.randomUUID();
     private EventSource eventGenerator;
 
-    public RemoteServerService() {
-        this(new EventQueueInterfaceImpl(), EmbeddedServletServer.DEFAULT_LISTEN_PORT);
+    public RemoteServerService(EmbeddedServletServer server) {
+        this(new EventQueueInterfaceImpl(), server);
+    }
+
+    public RemoteServerService(int port) {
+        this(new EventQueueInterfaceImpl(), port);
+    }
+
+    public RemoteServerService(EventQueueInterface eventQueueInterface) {
+        this(eventQueueInterface, new EmbeddedServletServerImpl());
     }
 
     public RemoteServerService(EventQueueInterface eventQueueInterface, int port) {
+        this(eventQueueInterface, new EmbeddedServletServerImpl(port));
+    }
+
+    public UUID getServerId() {
+        return serverId;
+    }
+
+    public RemoteServerService(EventQueueInterface eventQueueInterface, EmbeddedServletServer server) {
         super(eventQueueInterface);
         eventGenerator = new EventSourceImpl();
-        server = new EmbeddedServletServer(port);
+        this.server = server;
         getEventQueueInterface().addEventSource(eventGenerator);
 
+        // Create event handler event
         getEventQueueInterface().addEventHandler(EventHandler.create()
                 .eventType("CREATE_EVENT_HANDLER")
                 .eventData("serverId", serverId.toString())
-                .eventHandler(event -> Optional.ofNullable(event.getEventField("EVENT_HANDLER_DETAILS"))
-                        .ifPresent(data -> getEventQueueInterface().addEventHandler(EventHandler.fromJson(data))))
+                .hasDataKey("eventHandlerDetails")
+                .eventHandler(event -> getEventQueueInterface()
+                        .addEventHandler(EventHandler.fromJson(event.getEventField("eventHandlerDetails"))))
+                .build());
+
+        // Remove event handler event
+        getEventQueueInterface().addEventHandler(EventHandler.create()
+                .eventType("REMOVE_EVENT_HANDLER")
+                .eventData("serverId", serverId.toString())
+                .hasDataKey("eventHandlerId")
+                .eventHandler(event -> getEventQueueInterface()
+                        .removeEventHandler(UUID.fromString("eventHandlerId")))
                 .build());
 
         // Add a servlet for getting the server id
@@ -48,7 +76,7 @@ public class RemoteServerService extends AbstractService {
         });
 
         // Add a servlet for receiving an event
-        server.addServletConsumer("/receiveEvent", (req, res) -> {
+        server.addServletConsumer("/serverReceiveEvent", (req, res) -> {
             try {
                 eventGenerator.registerEvent(Event.decodeEvent(req.getReader()));
             } catch (IOException e) {

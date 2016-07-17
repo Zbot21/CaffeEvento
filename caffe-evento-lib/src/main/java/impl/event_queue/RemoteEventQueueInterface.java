@@ -3,10 +3,10 @@ package impl.event_queue;
 import api.event_queue.Event;
 import api.event_queue.EventHandler;
 import api.event_queue.EventSource;
-import impl.lib.EmbeddedServletServer;
+import api.lib.EmbeddedServletServer;
+import impl.lib.EmbeddedServletServerImpl;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * TODO: this is all probably mostly useless
@@ -22,7 +22,7 @@ public class RemoteEventQueueInterface extends EventQueueInterfaceImpl {
     public RemoteEventQueueInterface(int port) {
         eventGenerator = new EventSourceImpl();
         addEventSource(eventGenerator);
-        server = new EmbeddedServletServer(port);
+        server = new EmbeddedServletServerImpl(port);
         server.addServletConsumer("/receiveEvent", (req, res) -> {
             try {
                 eventGenerator.registerEvent(Event.decodeEvent(req.getReader()));

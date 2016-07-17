@@ -1,5 +1,6 @@
 package impl.lib;
 
+import api.lib.EmbeddedServletServer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;
@@ -17,24 +18,24 @@ import java.util.function.BiConsumer;
 /**
  * Created by chris on 7/14/16.
  */
-public final class EmbeddedServletServer {
+public final class EmbeddedServletServerImpl implements EmbeddedServletServer {
     public static int DEFAULT_LISTEN_PORT = 4325;
     private Server server;
     private ServletHandler servletHandler;
     private Log log;
 
-    public EmbeddedServletServer() {
+    public EmbeddedServletServerImpl() {
         this(DEFAULT_LISTEN_PORT);
     }
 
-    public EmbeddedServletServer(int port) {
+    public EmbeddedServletServerImpl(int port) {
         server = new Server(port);
         servletHandler = new ServletHandler();
         server.addHandler(servletHandler);
         log = LogFactory.getLog(getClass());
     }
 
-    public void addServletConsumer(String endpoint,
+    @Override public void addServletConsumer(String endpoint,
                                    BiConsumer<HttpServletRequest, HttpServletResponse> consumer) {
         Servlet s = new HttpServlet() {
             @Override
@@ -47,7 +48,7 @@ public final class EmbeddedServletServer {
         servletHandler.addServletWithMapping(servletHolder, endpoint);
     }
 
-    public void asyncStart() {
+    @Override public void asyncStart() {
         new Thread() {
             @Override
             public void run() {
@@ -56,20 +57,29 @@ public final class EmbeddedServletServer {
         }.start();
     }
 
-    public void syncStart() {
-        try {
-            server.start();
-            server.join();
-        } catch (Exception e) {
-            log.error("There was an error trying to run the server.", e);
+    @Override public void syncStart() {
+        if(!server.isStarted()){
+            try {
+                server.start();
+                server.join();
+            } catch (Exception e) {
+                log.error("There was an error trying to run the server.", e);
+            }
         }
     }
 
-    public void stop() {
-        try {
-            server.stop();
-        } catch (Exception e) {
-            log.error("There was an error trying to shut down the server", e);
-        }
+    @Override public void stop() {
+        // Safely stop the server from another thread.
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    server.stop();
+                } catch (Exception e) {
+                    log.error("There was an error trying to shut down the server", e);
+                }
+            }
+        }.start();
+
     }
 }

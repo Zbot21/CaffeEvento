@@ -5,6 +5,7 @@ import impl.event_queue.EventHandlerImpl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +29,10 @@ public class EventCollector{
 
     public List<Event> findEventsWithType(String type) {
         return collectedEvents.stream().filter(e -> e.getEventType().equals(type)).collect(Collectors.toList());
+    }
+
+    public List<Event> findEventsWithId(UUID id) {
+        return collectedEvents.stream().filter(i -> i.getEventId().equals(id)).collect(Collectors.toList());
     }
 
     public List<Event> getCollectedEvents() {
