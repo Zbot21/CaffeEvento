@@ -5,7 +5,6 @@ import api.event_queue.EventHandler;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
 import api.utils.EventBuilder;
-import com.google.common.collect.Iterables;
 import impl.event_queue.EventImpl;
 import impl.event_queue.EventSourceImpl;
 import impl.services.AbstractService;
@@ -14,7 +13,6 @@ import org.apache.commons.logging.LogFactory;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -141,7 +139,7 @@ public class SchedulerService extends AbstractService {
                     // stop timer after final execution.
                     eventTimer.cancel();
                 }
-            }, Date.from(Instant.now().plus(getDelay(sourceEvent.getEventField(SCHEDULER_FIELD.START_TIME.toString()), sourceEvent.getEventField(SCHEDULER_FIELD.DELAY.toString()), e -> e>0))));
+            }, Date.from(Instant.now().plus(getDelay(sourceEvent.getEventField(SchedulerField.START_TIME.toString()), sourceEvent.getEventField(SchedulerField.DELAY.toString()), e -> e>0))));
         }
 
         private Event createSchedulerCanceledEvent() {

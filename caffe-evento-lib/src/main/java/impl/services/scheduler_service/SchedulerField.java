@@ -4,7 +4,7 @@ package impl.services.scheduler_service;
  * Optional fields for SchedulerService
  * Created by eric on 7/16/16.
  */
-public enum SCHEDULER_FIELD {
+public enum SchedulerField {
     //sets the time of the first occurence of ScheduledEvent, if not present then ScheduledEvent is Scheduled to occur immediately
     START_TIME("SCHEDULED_TIME"),
     //sets minimum time to first instance from when SchedulerService recieves the Event, overrides ScheduledTime if later.
@@ -20,7 +20,7 @@ public enum SCHEDULER_FIELD {
 
     private final String field;
 
-    private SCHEDULER_FIELD(String field) {
+    private SchedulerField(String field) {
         this.field = field;
     }
 
