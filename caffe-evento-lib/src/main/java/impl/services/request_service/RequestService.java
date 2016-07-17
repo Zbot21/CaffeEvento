@@ -52,26 +52,25 @@ public class RequestService extends AbstractService {
         }).build());
     }
 
-    public static Event generateRequestEvent(String eventName, Event fufillmentEvent){
+    public static EventBuilder generateRequestEvent(String eventName, Event fufillmentEvent){
         return EventBuilder.create()
                 .name(eventName).type(REQUEST_EVENT_TYPE)
                 .data(REQUEST_EVENT_FUFILLMENT, fufillmentEvent.encodeEvent())
-                .data(REQUEST_ID_FIELD, UUID.randomUUID().toString())
-                .build();
+                .data(REQUEST_ID_FIELD, UUID.randomUUID().toString());
     }
 
-    public static Event generateRequestSuccessEvent(String eventName, UUID requestId) {
+    public static EventBuilder generateRequestSuccessEvent(String eventName, UUID requestId) {
         return EventBuilder.create()
                 .name(eventName)
                 .type(REQUEST_FUFILLED_EVENT)
-                .data(REQUEST_ID_FIELD, requestId.toString()).build();
+                .data(REQUEST_ID_FIELD, requestId.toString());
     }
 
-    public static Event generateRequestFailedEvent(String eventName, UUID requestId) {
+    public static EventBuilder generateRequestFailedEvent(String eventName, UUID requestId) {
         return EventBuilder.create()
                 .name(eventName)
                 .type(REQUEST_FAILED_EVENT)
-                .data(REQUEST_ID_FIELD, requestId.toString()).build();
+                .data(REQUEST_ID_FIELD, requestId.toString());
     }
 
     public int numberOfActiveRequests() {
@@ -100,7 +99,7 @@ public class RequestService extends AbstractService {
                     .eventType(REQUEST_FUFILLED_EVENT)
                     .eventData(REQUEST_ID_FIELD, requestId.toString())
                     .eventHandler(event -> {
-                        eventGenerator.registerEvent(createRequestCompletedEvent());
+                        createRequestCompletedEvent().send(eventGenerator);
                         requestEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e)); // Do not replace with method reference
                         activeRequests.remove(requestId);
                     }).build();
@@ -127,10 +126,9 @@ public class RequestService extends AbstractService {
             eventGenerator.registerEvent(fufillmentEvent);
         }
 
-        private Event createRequestCompletedEvent() {
-            Event completedEvent = new EventImpl("Completed request " + requestId, REQUEST_COMPLETED_EVENT);
-            completedEvent.setEventField(REQUEST_ID_FIELD, requestId.toString());
-            return completedEvent;
+        private EventBuilder createRequestCompletedEvent() {
+            return EventBuilder.create().name("Completed request" + requestId).type(REQUEST_COMPLETED_EVENT)
+                    .data(REQUEST_ID_FIELD, requestId.toString());
         }
 
         public UUID getRequestId() {

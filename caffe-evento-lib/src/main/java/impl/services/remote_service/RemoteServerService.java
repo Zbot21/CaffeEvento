@@ -11,7 +11,6 @@ import impl.lib.EmbeddedServletServerImpl;
 import impl.services.AbstractService;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
 
 /**

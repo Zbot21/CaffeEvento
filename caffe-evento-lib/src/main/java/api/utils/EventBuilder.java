@@ -1,7 +1,10 @@
 package api.utils;
 
 import api.event_queue.Event;
+import api.event_queue.EventSource;
 import impl.event_queue.EventImpl;
+
+import java.util.function.Consumer;
 
 /**
  * Created by chris on 7/12/16.
@@ -33,5 +36,13 @@ public class EventBuilder {
 
     public Event build() {
         return this.event;
+    }
+
+    public void build(Consumer<Event> consumer) {
+        consumer.accept(build());
+    }
+
+    public void send(EventSource source) {
+        source.registerEvent(build());
     }
 }
