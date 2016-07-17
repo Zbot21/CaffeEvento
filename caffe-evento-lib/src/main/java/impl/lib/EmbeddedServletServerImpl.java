@@ -3,7 +3,9 @@ package impl.lib;
 import api.lib.EmbeddedServletServer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.HandlerList;
 import org.mortbay.jetty.servlet.ServletHandler;
 import org.mortbay.jetty.servlet.ServletHolder;
 
@@ -13,6 +15,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
@@ -29,13 +33,26 @@ public final class EmbeddedServletServerImpl implements EmbeddedServletServer {
     }
 
     public EmbeddedServletServerImpl(int port) {
-        server = new Server(port);
+        this(new Server(port));
+    }
+
+    public EmbeddedServletServerImpl(Server server) {
+        this.server = server;
         servletHandler = new ServletHandler();
-        server.addHandler(servletHandler);
+        this.server.addHandler(servletHandler);
         log = LogFactory.getLog(getClass());
     }
 
-    @Override public void addServletConsumer(String endpoint,
+    public void addAdditionalHandler(Handler handler) {
+        server.addHandler(handler);
+    }
+
+    public boolean isStarted() {
+        return server.isStarted();
+    }
+
+    @Override
+    public void addServletConsumer(String endpoint,
                                    BiConsumer<HttpServletRequest, HttpServletResponse> consumer) {
         Servlet s = new HttpServlet() {
             @Override
