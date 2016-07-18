@@ -45,11 +45,7 @@ public class SchedulerServiceTest {
 
         //Clunky at best
         Map<String, String> params = new HashMap<>();
-<<<<<<< HEAD
         params.put(SchedulerService.START_TIME, Date.from(Instant.now().plus(1, SECONDS)).toString());
-=======
-        params.put(SchedulerField.START_TIME.toString(), Date.from(Instant.now().plus(1, SECONDS)).toString());
->>>>>>> 8cacc772d0d517cb04c4f8f734ef19889c189677
         Event schedulerEvent = SchedulerService.generateSchedulerEvent("Test Schedule", scheduledEvent, params);
 
         eventGenerator.registerEvent(schedulerEvent);
@@ -73,11 +69,12 @@ public class SchedulerServiceTest {
         eventGenerator.registerEvent(schedulerEvent);
         assertEquals("unregistered scheduler too early", 1, instance.numberOfActiveSchedulers());
         assertEquals("registered scheduledEvent too early", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
-        sleep(500);
+        sleep(40);
         eventGenerator.registerEvent(cancelEvent);
         assertEquals("activeScheduler not removed", 0, instance.numberOfActiveSchedulers());
-        assertEquals("Event fired when canceled", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
-        sleep(600);
-        assertEquals("Event fired when canceled", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
+        assertEquals("Event fired when canceled1", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
+        sleep(1000);
+        assertEquals("Event fired when canceled2", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
+        assertEquals("Canceled Event did not fire", 1, eventCollector.findEventsWithType(SchedulerService.SCHEDULE_EVENT_CANCELED).size());
     }
 }

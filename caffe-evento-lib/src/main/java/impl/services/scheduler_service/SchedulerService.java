@@ -57,8 +57,6 @@ public class SchedulerService extends AbstractService {
     public static final String END_TIME = "SCHEDULED_END_TIME";
     //sets maximum time during which ScheduledEvent can repeat after first occurence, overrides Scheduled end time if shorter
     public static final String MAXDURATION = "MAX_DURATION";
-    //gives the maximum number of times which the event can repeat. If maximum repetitions are reached before time limits then ScheduledEvent stops occuring.
-    public static final String MAXREPEATS = "MAX_REPEATS";
 
     /* (optional) Fields Added to ScheduledEvent */
     public static final String SCHEDULED_EVENT_ITERATION = "SCHEDULED_EVENT_ITERATION";
@@ -115,7 +113,7 @@ public class SchedulerService extends AbstractService {
         private final UUID schedulerId;
         private List<EventHandler> SchedulerEventHandlers = new ArrayList<EventHandler>();
         private final ScheduledExecutorService eventTimer = Executors.newScheduledThreadPool(1);
-        Event scheduledEvent;
+        private Event scheduledEvent;
 
         public Scheduler(Event sourceEvent) throws SchedulerException {
             final ScheduledFuture<?> fireScheduledEventHandle;
@@ -142,14 +140,10 @@ public class SchedulerService extends AbstractService {
                     delay = Duration.between(Instant.now(), (new SimpleDateFormat(DATE_FORMAT).parse(sourceEvent.getEventField(START_TIME))).toInstant()).toMillis();
                 }
                 if (sourceEvent.getEventField(DELAY) != null) {
-                    if (Duration.parse(sourceEvent.getEventField(DELAY)).toMillis() > delay) {
-                        delay = Duration.parse(sourceEvent.getEventField(DELAY)).toMillis();
-                    }
+                        delay = Long.max(Duration.parse(sourceEvent.getEventField(DELAY)).toMillis(), delay);
                 }
                 if (sourceEvent.getEventField(MAXDURATION) != null) {
-                    if (Duration.parse(sourceEvent.getEventField(MAXDURATION)).toMillis() + delay < maxDelayToFinish) {
-                        maxDelayToFinish = Duration.parse(sourceEvent.getEventField(MAXDURATION)).toMillis() + delay;
-                    }
+                    maxDelayToFinish = Long.min(Duration.parse(sourceEvent.getEventField(MAXDURATION)).toMillis() + delay, maxDelayToFinish);
                 }
                 if (sourceEvent.getEventField(REPEAT_PERIOD) != null) {
                     period =  Duration.parse(sourceEvent.getEventField(REPEAT_PERIOD)).toMillis();
@@ -188,7 +182,6 @@ public class SchedulerService extends AbstractService {
                                     TimeUnit.MILLISECONDS
                             );
                 }
-<<<<<<< HEAD
 
                 // add the canceled request handler
                 EventHandler canceled = EventHandler.create()
@@ -215,9 +208,6 @@ public class SchedulerService extends AbstractService {
                     }, maxDelayToFinish, TimeUnit.MILLISECONDS);
                 }
             }
-=======
-            }, Date.from(Instant.now().plus(getDelay(sourceEvent.getEventField(SchedulerField.START_TIME.toString()), sourceEvent.getEventField(SchedulerField.DELAY.toString()), e -> e>0))));
->>>>>>> 8cacc772d0d517cb04c4f8f734ef19889c189677
         }
 
         private Event createSchedulerCanceledEvent() {
