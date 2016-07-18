@@ -29,8 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 // TODO: Define DATE_FORMAT Somewhere more public
-// TODO: Add ability for ScheduledEvent to occur after a specific delay
-// TODO: Add ability for ScheduledEvent to occur more than once (periodically)
+// TODO: Add ability to limit the maximum number of times that ScheduledEvent occurs when repeating event
 
 public class SchedulerService extends AbstractService {
     public static final String DATE_FORMAT = "EEE MMM dd hh:mm:ss zzz yyyy";
@@ -57,6 +56,8 @@ public class SchedulerService extends AbstractService {
     public static final String END_TIME = "SCHEDULED_END_TIME";
     //sets maximum time during which ScheduledEvent can repeat after first occurence, overrides Scheduled end time if shorter
     public static final String MAXDURATION = "MAX_DURATION";
+    //sets maximum number of times ScheduledEvent will be allowed to occur when scheduled as a repeating event
+    public static final String MAXREPEATS = "MAX_REPEATS";
 
     /* (optional) Fields Added to ScheduledEvent */
     public static final String SCHEDULED_EVENT_ITERATION = "SCHEDULED_EVENT_ITERATION";
@@ -85,8 +86,6 @@ public class SchedulerService extends AbstractService {
                 }).build());
     }
 
-    //TODO: Repair generateSchedulerEvent(...) so that it creates USEABLE events.
-    //TODO: Refactor code so I don't have so much repetition.
     public static Event generateSchedulerEvent(String eventName, Event actionEvent, Map<String, String> arguments) {
         EventBuilder schedulerBuilder = EventBuilder.create();
         schedulerBuilder.name(eventName)
@@ -111,7 +110,7 @@ public class SchedulerService extends AbstractService {
 
     private class Scheduler {
         private final UUID schedulerId;
-        private List<EventHandler> SchedulerEventHandlers = new ArrayList<EventHandler>();
+        private List<EventHandler> SchedulerEventHandlers = new ArrayList<>();
         private final ScheduledExecutorService eventTimer = Executors.newScheduledThreadPool(1);
         private Event scheduledEvent;
 
@@ -213,8 +212,8 @@ public class SchedulerService extends AbstractService {
         private Event createSchedulerCanceledEvent() {
             return EventBuilder.create()
                     .name("Canceled Scheduler " + schedulerId)
-                    .type(SchedulerService.SCHEDULE_EVENT_CANCELED)
-                    .data(SchedulerService.SCHEDULE_ID_FIELD, schedulerId.toString())
+                    .type(SCHEDULE_EVENT_CANCELED)
+                    .data(SCHEDULE_ID_FIELD, schedulerId.toString())
                     .build();
         }
 
