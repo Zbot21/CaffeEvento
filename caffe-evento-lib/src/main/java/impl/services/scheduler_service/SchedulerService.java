@@ -188,6 +188,7 @@ public class SchedulerService extends AbstractService {
                                     TimeUnit.MILLISECONDS
                             );
                 }
+<<<<<<< HEAD
 
                 // add the canceled request handler
                 EventHandler canceled = EventHandler.create()
@@ -214,6 +215,9 @@ public class SchedulerService extends AbstractService {
                     }, maxDelayToFinish, TimeUnit.MILLISECONDS);
                 }
             }
+=======
+            }, Date.from(Instant.now().plus(getDelay(sourceEvent.getEventField(SchedulerField.START_TIME.toString()), sourceEvent.getEventField(SchedulerField.DELAY.toString()), e -> e>0))));
+>>>>>>> 8cacc772d0d517cb04c4f8f734ef19889c189677
         }
 
         private Event createSchedulerCanceledEvent() {

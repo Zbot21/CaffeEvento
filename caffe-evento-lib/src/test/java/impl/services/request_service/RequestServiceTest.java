@@ -34,8 +34,7 @@ public class RequestServiceTest {
     @Test
     public void testInitialRequest() {
         Event fufillerEvent = new EventImpl("Test Request Doer", "TestReq");
-        Event requestEvent = RequestService.generateRequestEvent("Test Request", fufillerEvent);
-        eventGenerator.registerEvent(requestEvent);
+        RequestService.generateRequestEvent("Test Request", fufillerEvent).send(eventGenerator);
         assertEquals(1, eventCollector.findEventsWithName("Test Request Doer").size());
         assertEquals(1, instance.numberOfActiveRequests());
     }
@@ -43,11 +42,11 @@ public class RequestServiceTest {
     @Test
     public void testRequestFufilled() {
         Event fufillerEvent = new EventImpl("Test Request Doer", "TestReq");
-        Event requestEvent = RequestService.generateRequestEvent("Test Request", fufillerEvent);
+        Event requestEvent = RequestService.generateRequestEvent("Test Request", fufillerEvent).build();
         UUID requestId = UUID.fromString(requestEvent.getEventField(RequestService.REQUEST_ID_FIELD));
         eventGenerator.registerEvent(requestEvent);
         assertEquals(1, instance.numberOfActiveRequests());
-        eventGenerator.registerEvent(RequestService.generateRequestSuccessEvent("Request Success!", requestId));
+        RequestService.generateRequestSuccessEvent("Request Success!", requestId).send(eventGenerator);
         assertEquals(0, instance.numberOfActiveRequests());
         assertEquals(1, eventCollector.findEventsWithType(RequestService.REQUEST_COMPLETED_EVENT).size());
     }
@@ -55,11 +54,11 @@ public class RequestServiceTest {
     @Test
     public void testRequestFailed() {
         Event fufillerEvent = new EventImpl("Test Request Doer", "TestReq");
-        Event requestEvent = RequestService.generateRequestEvent("Test Request", fufillerEvent);
+        Event requestEvent = RequestService.generateRequestEvent("Test Request", fufillerEvent).build();
         UUID requestId = UUID.fromString(requestEvent.getEventField(RequestService.REQUEST_ID_FIELD));
         eventGenerator.registerEvent(requestEvent);
         assertEquals(1, instance.numberOfActiveRequests());
-        eventGenerator.registerEvent(RequestService.generateRequestFailedEvent("Request Failed :-(", requestId));
+        RequestService.generateRequestFailedEvent("Request Failed :-(", requestId).send(eventGenerator);
         assertEquals(1, instance.numberOfActiveRequests());
         assertEquals(2, eventCollector.findEventsWithName("Test Request Doer").size());
     }
@@ -67,17 +66,17 @@ public class RequestServiceTest {
     @Test
     public void testFailuresMoreThanMax() {
         Event fufillerEvent = new EventImpl("Test Request Doer", "TestReq");
-        Event requestEvent = RequestService.generateRequestEvent("Test Request", fufillerEvent);
+        Event requestEvent = RequestService.generateRequestEvent("Test Request", fufillerEvent).build();
         UUID requestId = UUID.fromString(requestEvent.getEventField(RequestService.REQUEST_ID_FIELD));
         eventGenerator.registerEvent(requestEvent);
         assertEquals(1, instance.numberOfActiveRequests());
         for(int i = 0; i < RequestService.MAX_RETRIES; i++){
             assertEquals(i + 1, eventCollector.findEventsWithName("Test Request Doer").size());
-            eventGenerator.registerEvent(RequestService.generateRequestFailedEvent("Request Failed :-(", requestId));
+            RequestService.generateRequestFailedEvent("Request Failed :-(", requestId).send(eventGenerator);
             assertEquals(1, instance.numberOfActiveRequests());
             assertEquals(i + 2, eventCollector.findEventsWithName("Test Request Doer").size());
         }
-        eventGenerator.registerEvent(RequestService.generateRequestFailedEvent("Final Request Failed :-(", requestId));
+        RequestService.generateRequestFailedEvent("Final Request Failed :-(", requestId).send(eventGenerator);
         assertEquals(0, instance.numberOfActiveRequests());
     }
 

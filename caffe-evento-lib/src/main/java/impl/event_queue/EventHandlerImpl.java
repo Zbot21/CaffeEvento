@@ -2,10 +2,7 @@ package impl.event_queue;
 
 import api.event_queue.Event;
 import api.event_queue.EventHandler;
-import com.google.common.base.*;
-import com.google.common.base.Objects;
 import com.google.gson.GsonBuilder;
-//import com.sun.deploy.util.OrderedHashSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.HttpClient;

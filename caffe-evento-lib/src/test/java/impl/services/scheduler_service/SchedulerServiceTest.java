@@ -15,10 +15,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import test_util.EventCollector;
 
 import java.time.Instant;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.Thread.sleep;
 import static java.time.temporal.ChronoUnit.SECONDS;
@@ -48,7 +45,11 @@ public class SchedulerServiceTest {
 
         //Clunky at best
         Map<String, String> params = new HashMap<>();
+<<<<<<< HEAD
         params.put(SchedulerService.START_TIME, Date.from(Instant.now().plus(1, SECONDS)).toString());
+=======
+        params.put(SchedulerField.START_TIME.toString(), Date.from(Instant.now().plus(1, SECONDS)).toString());
+>>>>>>> 8cacc772d0d517cb04c4f8f734ef19889c189677
         Event schedulerEvent = SchedulerService.generateSchedulerEvent("Test Schedule", scheduledEvent, params);
 
         eventGenerator.registerEvent(schedulerEvent);
