@@ -5,7 +5,6 @@ import api.event_queue.EventHandler;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
 import api.utils.EventBuilder;
-import com.google.common.collect.Iterables;
 import impl.event_queue.EventImpl;
 import impl.event_queue.EventSourceImpl;
 import impl.services.AbstractService;
@@ -14,12 +13,13 @@ import org.apache.commons.logging.LogFactory;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.function.IntPredicate;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This service takes a schedule event and generates scheduled events
@@ -45,6 +45,20 @@ public class SchedulerService extends AbstractService {
     public static final String SCHEDULED_EVENT_ACTION = "SCHEDULED_ACTION";
     // Field used only in UNSCHEDULE event types
     public static final String SCHEDULE_ID_FIELD = "SCHEDULER_ID";
+
+    /* Optional Fields */
+    //sets the time of the first occurence of ScheduledEvent, if not present then ScheduledEvent is Scheduled to occur immediately
+    public static final String START_TIME = "SCHEDULED_TIME";
+    //sets minimum time to first instance from when SchedulerService recieves the Event, overrides ScheduledTime if later.
+    public static final String DELAY = "DELAY";
+    //sets the period between event recurrences, if not specified the ScheduledEvent does not repeat
+    public static final String REPEAT_PERIOD = "PERIOD";
+    //sets time at which the last ScheduledEvent may occur. If this is after the current time then the ScheduledEvent never happens.
+    public static final String END_TIME = "SCHEDULED_END_TIME";
+    //sets maximum time during which ScheduledEvent can repeat after first occurence, overrides Scheduled end time if shorter
+    public static final String MAXDURATION = "MAX_DURATION";
+    //gives the maximum number of times which the event can repeat. If maximum repetitions are reached before time limits then ScheduledEvent stops occuring.
+    public static final String MAXREPEATS = "MAX_REPEATS";
 
     /* (optional) Fields Added to ScheduledEvent */
     public static final String SCHEDULED_EVENT_ITERATION = "SCHEDULED_EVENT_ITERATION";
@@ -99,88 +113,119 @@ public class SchedulerService extends AbstractService {
 
     private class Scheduler {
         private final UUID schedulerId;
-        private List<EventHandler> SchedulerEventHandlers =  new ArrayList<>();
-        private Timer eventTimer = new Timer();
+        private List<EventHandler> SchedulerEventHandlers = new ArrayList<EventHandler>();
+        private final ScheduledExecutorService eventTimer = Executors.newScheduledThreadPool(1);
+        Event scheduledEvent;
 
         public Scheduler(Event sourceEvent) throws SchedulerException {
+            final ScheduledFuture<?> fireScheduledEventHandle;
+            long delay = Long.MIN_VALUE;
+            long maxDelayToFinish = Long.MAX_VALUE;
+            long period = Long.MAX_VALUE;
 
             if (sourceEvent.getEventField(SCHEDULE_ID_FIELD) == null) {
                 throw new SchedulerException("No Scheduler ID field.");
             }
-            if (sourceEvent.getEventField(SCHEDULED_EVENT_ACTION) == null){
+            if (sourceEvent.getEventField(SCHEDULED_EVENT_ACTION) == null) {
                 throw new SchedulerException("No Event to Schedule");
             }
 
-            schedulerId = UUID.fromString(sourceEvent.getEventField(SCHEDULE_ID_FIELD));
-            Event scheduledEvent = Event.decodeEvent(sourceEvent.getEventField(SCHEDULED_EVENT_ACTION));
-            scheduledEvent.setEventField(SCHEDULE_ID_FIELD, schedulerId.toString());
+            this.schedulerId = UUID.fromString(sourceEvent.getEventField(SCHEDULE_ID_FIELD));
+            scheduledEvent = Event.decodeEvent(sourceEvent.getEventField(SCHEDULED_EVENT_ACTION));
 
-            // add the canceled request handler
-            EventHandler canceled = EventHandler.create()
-                    .eventType(SCHEDULE_EVENT_CANCEL_TYPE)
-                    .eventData(SCHEDULE_ID_FIELD, schedulerId.toString())
-                    .eventHandler(event -> {
-                        eventTimer.cancel(); // this line actually stops the ScheduledEvent, does nothing if already canceled, can be used to check success
-                        eventGenerator.registerEvent(createSchedulerCanceledEvent());
-                        SchedulerEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));
-                        activeSchedulers.remove(schedulerId);
-                    }).build();
-
-            SchedulerEventHandlers.add(canceled);
-            getEventQueueInterface().addEventHandler(canceled);
-
-            // this part only allows the ScheduledEvent to occur once, modify this to allow repeated events
-            eventTimer.schedule(new TimerTask() {
-                public void run() {
-                    eventGenerator.registerEvent(new EventImpl(scheduledEvent));
-                    /* Final Iteration */
-                    // Unregister the canceled EventHandler upon final execution
-                    SchedulerEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));
-                    // remove the scheduler from active schedulers when it completes.
-                    activeSchedulers.remove(schedulerId);
-                    // stop timer after final execution.
-                    eventTimer.cancel();
+            // break out all the optional field
+            try {
+                if (sourceEvent.getEventField(END_TIME) != null) {
+                    maxDelayToFinish = Duration.between(Instant.now(), (new SimpleDateFormat(DATE_FORMAT).parse(sourceEvent.getEventField(END_TIME))).toInstant()).toMillis();
                 }
-            }, Date.from(Instant.now().plus(getDelay(sourceEvent.getEventField(SCHEDULER_FIELD.START_TIME.toString()), sourceEvent.getEventField(SCHEDULER_FIELD.DELAY.toString()), e -> e>0))));
+                if (sourceEvent.getEventField(START_TIME) != null) {
+                    delay = Duration.between(Instant.now(), (new SimpleDateFormat(DATE_FORMAT).parse(sourceEvent.getEventField(START_TIME))).toInstant()).toMillis();
+                }
+                if (sourceEvent.getEventField(DELAY) != null) {
+                    if (Duration.parse(sourceEvent.getEventField(DELAY)).toMillis() > delay) {
+                        delay = Duration.parse(sourceEvent.getEventField(DELAY)).toMillis();
+                    }
+                }
+                if (sourceEvent.getEventField(MAXDURATION) != null) {
+                    if (Duration.parse(sourceEvent.getEventField(MAXDURATION)).toMillis() + delay < maxDelayToFinish) {
+                        maxDelayToFinish = Duration.parse(sourceEvent.getEventField(MAXDURATION)).toMillis() + delay;
+                    }
+                }
+                if (sourceEvent.getEventField(REPEAT_PERIOD) != null) {
+                    period =  Duration.parse(sourceEvent.getEventField(REPEAT_PERIOD)).toMillis();
+                }
+            } catch(ParseException e) {
+                throw new SchedulerException("Could not parse Field");
+            }
+
+            // if the event can still happen schedule the event to occur
+            if (maxDelayToFinish > delay) {
+                if (sourceEvent.getEventField(REPEAT_PERIOD) != null) {
+                    // this launches the repeating event
+                    fireScheduledEventHandle =
+                            eventTimer.scheduleAtFixedRate(
+                                    new Runnable() {
+                                        public void run() {
+                                            eventGenerator.registerEvent(new EventImpl(scheduledEvent));
+                                        }
+                                    },
+                                    delay,
+                                    period,
+                                    TimeUnit.MILLISECONDS
+                            );
+                } else {
+                    // this launches on a non-repeating event
+                    fireScheduledEventHandle =
+                            eventTimer.schedule(
+                                    new Runnable() {
+                                        public void run() {
+                                            eventGenerator.registerEvent(new EventImpl(scheduledEvent));
+                                            SchedulerEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));
+                                            activeSchedulers.remove(schedulerId);
+                                        }
+                                    },
+                                    delay,
+                                    TimeUnit.MILLISECONDS
+                            );
+                }
+
+                // add the canceled request handler
+                EventHandler canceled = EventHandler.create()
+                        .eventType(SchedulerService.SCHEDULE_EVENT_CANCEL_TYPE)
+                        .eventData(SchedulerService.SCHEDULE_ID_FIELD, schedulerId.toString())
+                        .eventHandler(event -> {
+                            fireScheduledEventHandle.cancel(true); // this line actually stops the ScheduledEvent
+                            eventGenerator.registerEvent(createSchedulerCanceledEvent());
+                            SchedulerEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));
+                            activeSchedulers.remove(schedulerId);
+                        }).build();
+                SchedulerEventHandlers.add(canceled);
+                getEventQueueInterface().addEventHandler(canceled);
+
+                if ((sourceEvent.getEventField(END_TIME) != null) || (sourceEvent.getEventField(MAXDURATION) != null)) {
+                    // this launches the stop timer
+                    eventTimer.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            SchedulerEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));
+                            activeSchedulers.remove(schedulerId);
+                            fireScheduledEventHandle.cancel(true);
+                        }
+                    }, maxDelayToFinish, TimeUnit.MILLISECONDS);
+                }
+            }
         }
 
         private Event createSchedulerCanceledEvent() {
             return EventBuilder.create()
                     .name("Canceled Scheduler " + schedulerId)
-                    .type(SCHEDULE_EVENT_CANCELED)
-                    .data(SCHEDULE_ID_FIELD, schedulerId.toString())
+                    .type(SchedulerService.SCHEDULE_EVENT_CANCELED)
+                    .data(SchedulerService.SCHEDULE_ID_FIELD, schedulerId.toString())
                     .build();
         }
 
-        public UUID getSchedulerId(){
+        public UUID getSchedulerId() {
             return schedulerId;
-        }
-
-        // This method parses both absolute time references and relative time references and returns an appropriate delay
-        private Duration getDelay(String absoluteTime, String relativeTime, IntPredicate priority) throws SchedulerException {
-            Duration scheduledDelay = Duration.ZERO;
-
-            if (absoluteTime != null) {
-                try {
-                    scheduledDelay = Duration.between(Instant.now(), (new SimpleDateFormat(DATE_FORMAT).parse(absoluteTime)).toInstant());
-                } catch(ParseException e) {
-                    throw new SchedulerException("Invalid DATE_FORMAT, could not parse absoluteTime");
-                }
-            } else {
-                scheduledDelay = Duration.ZERO;
-            }
-            if (relativeTime != null) {
-                try {
-                    // There has to be a better way to do this
-                    if (priority.test(Duration.parse(relativeTime).compareTo(scheduledDelay))) {
-                        scheduledDelay = Duration.parse(relativeTime);
-                    }
-                } catch (DateTimeParseException e) {
-                    throw new SchedulerException("Invalid Duration format, Could not parse relativeTime");
-                }
-            }
-
-            return scheduledDelay;
         }
     }
 }

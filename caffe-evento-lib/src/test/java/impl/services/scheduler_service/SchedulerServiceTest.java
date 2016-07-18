@@ -48,19 +48,35 @@ public class SchedulerServiceTest {
 
         //Clunky at best
         Map<String, String> params = new HashMap<>();
-        params.put(SCHEDULER_FIELD.START_TIME.toString(), Date.from(Instant.now().plus(1, SECONDS)).toString());
+        params.put(SchedulerService.START_TIME, Date.from(Instant.now().plus(1, SECONDS)).toString());
         Event schedulerEvent = SchedulerService.generateSchedulerEvent("Test Schedule", scheduledEvent, params);
 
         eventGenerator.registerEvent(schedulerEvent);
         assertEquals("unregistered scheduler too early", 1, instance.numberOfActiveSchedulers());
         assertEquals("registered scheduledEvent too early", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
-        sleep(1050);
+        sleep(1100);
         assertEquals("activeScheduler not removed", 0, instance.numberOfActiveSchedulers());
         assertEquals(1, eventCollector.findEventsWithName("Test Schedule Doer").size());
     }
 
     @Test
     public void testCancelEvent() throws Exception {
-        throw new Exception("Test not implemented.");
+        Event scheduledEvent = new EventImpl("Test Schedule Doer", "TestReq");
+
+        //Clunky at best
+        Map<String, String> params = new HashMap<>();
+        params.put(SchedulerService.START_TIME, Date.from(Instant.now().plus(1, SECONDS)).toString());
+        Event schedulerEvent = SchedulerService.generateSchedulerEvent("Test Schedule", scheduledEvent, params);
+        Event cancelEvent = SchedulerService.generateSchedulerCancelEvent("Test Schedule Cancel", UUID.fromString(schedulerEvent.getEventField(SchedulerService.SCHEDULE_ID_FIELD)));
+
+        eventGenerator.registerEvent(schedulerEvent);
+        assertEquals("unregistered scheduler too early", 1, instance.numberOfActiveSchedulers());
+        assertEquals("registered scheduledEvent too early", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
+        sleep(500);
+        eventGenerator.registerEvent(cancelEvent);
+        assertEquals("activeScheduler not removed", 0, instance.numberOfActiveSchedulers());
+        assertEquals("Event fired when canceled", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
+        sleep(600);
+        assertEquals("Event fired when canceled", 0, eventCollector.findEventsWithName("Test Schedule Doer").size());
     }
 }
