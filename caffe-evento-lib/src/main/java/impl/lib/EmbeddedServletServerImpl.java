@@ -3,11 +3,11 @@ package impl.lib;
 import api.lib.EmbeddedServletServer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.HandlerList;
-import org.mortbay.jetty.servlet.ServletHandler;
-import org.mortbay.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -15,45 +15,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
  * Created by chris on 7/14/16.
  */
 public final class EmbeddedServletServerImpl implements EmbeddedServletServer {
-    public static int DEFAULT_LISTEN_PORT = 4325;
-    private Server server;
-    private ServletHandler servletHandler;
+    private ServletContextHandler contextHandler;
     private Log log;
 
-    public EmbeddedServletServerImpl() {
-        this(DEFAULT_LISTEN_PORT);
-    }
-
-    public EmbeddedServletServerImpl(int port) {
-        this(new Server(port));
-    }
-
-    public EmbeddedServletServerImpl(Server server) {
-        this.server = server;
-        servletHandler = new ServletHandler();
-        this.server.addHandler(servletHandler);
+    public EmbeddedServletServerImpl(ServletContextHandler contextHandler) {
+        this.contextHandler = contextHandler;
         log = LogFactory.getLog(getClass());
     }
 
-    public void addAdditionalHandler(Handler handler) {
-        server.addHandler(handler);
-    }
-
-    public boolean isStarted() {
-        return server.isStarted();
-    }
-
-    @Override
-    public void addServletConsumer(String endpoint,
-                                   BiConsumer<HttpServletRequest, HttpServletResponse> consumer) {
+    public void addServletConsumer(String endpoint, BiConsumer<HttpServletRequest, HttpServletResponse> consumer) {
         Servlet s = new HttpServlet() {
             @Override
             protected void service(HttpServletRequest req, HttpServletResponse res)
@@ -62,41 +38,6 @@ public final class EmbeddedServletServerImpl implements EmbeddedServletServer {
             }
         };
         ServletHolder servletHolder = new ServletHolder(s);
-        servletHandler.addServletWithMapping(servletHolder, endpoint);
-    }
-
-    @Override public void asyncStart() {
-        new Thread() {
-            @Override
-            public void run() {
-                syncStart();
-            }
-        }.start();
-    }
-
-    @Override public void syncStart() {
-        if(!server.isStarted()){
-            try {
-                server.start();
-                server.join();
-            } catch (Exception e) {
-                log.error("There was an error trying to run the server.", e);
-            }
-        }
-    }
-
-    @Override public void stop() {
-        // Safely stop the server from another thread.
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    server.stop();
-                } catch (Exception e) {
-                    log.error("There was an error trying to shut down the server", e);
-                }
-            }
-        }.start();
-
+        contextHandler.addServlet(servletHolder, endpoint);
     }
 }

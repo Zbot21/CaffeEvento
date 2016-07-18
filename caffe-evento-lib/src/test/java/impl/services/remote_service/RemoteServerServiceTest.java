@@ -15,6 +15,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,15 +40,27 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 public class RemoteServerServiceTest {
     private static final int port = 2345;
     private static final int rxPort = 2346;
+    private Server sourceServer = new Server(port);
+    private Server localServer = new Server(rxPort);
+    private ServletContextHandler sourceContextHandler = new ServletContextHandler();
+    private ServletContextHandler localContextHander = new ServletContextHandler();
+
     private EventQueue eventQueue = new SynchronousEventQueue();
     private EventQueueInterface eventQueueInterface = new EventQueueInterfaceImpl();
-    private RemoteServerService instance =
-            new RemoteServerService(eventQueueInterface, new EmbeddedServletServerImpl(port));
+    private RemoteServerService instance = new RemoteServerService(eventQueueInterface, sourceContextHandler);
     private HttpClient client;
     private EventCollector eventCollector = new EventCollector();
     private EventSource eventInjector = new EventSourceImpl();
-    private EmbeddedServletServer receivingService = new EmbeddedServletServerImpl(rxPort);
+    private EmbeddedServletServer receivingService = new EmbeddedServletServerImpl(localContextHander);
     private final List<Event> receivedEvents = new ArrayList<>();
+
+    public void setUpServers() {
+        sourceContextHandler.setContextPath("/");
+        sourceServer.setHandler(sourceContextHandler);
+
+        localContextHander.setContextPath("/");
+        localServer.setHandler(localContextHander);
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -54,7 +68,9 @@ public class RemoteServerServiceTest {
         eventQueue.registerService(instance);
         eventQueue.addEventSource(eventInjector);
         eventQueue.addEventHandler(eventCollector.getHandler());
-        instance.startServer();
+        setUpServers();
+        sourceServer.start();
+        localServer.start();
         receivingService.addServletConsumer("/receiveEvent", (req, res) -> {
             try {
                 receivedEvents.add(Event.decodeEvent(req.getReader()));
@@ -62,14 +78,14 @@ public class RemoteServerServiceTest {
                 e.printStackTrace();
             }
         });
-        receivingService.asyncStart();
-        Thread.sleep(50);
+        Thread.sleep(100);
     }
 
     @After
     public void tearDown() throws Exception {
-        receivingService.stop();
-        instance.stopServer();
+        Thread.sleep(100);
+        sourceServer.stop();
+        localServer.stop();
     }
 
     @Test
@@ -80,6 +96,7 @@ public class RemoteServerServiceTest {
         HttpPost post = new HttpPost("http://localhost:"+port+"/serverReceiveEvent");
         post.setEntity(new StringEntity(event.encodeEvent()));
         client.execute(post);
+        Thread.sleep(20);
 
         List<Event> collectedEvents = eventCollector.findEventsWithId(event.getEventId());
         assertEquals(1, collectedEvents.size());
@@ -157,6 +174,7 @@ public class RemoteServerServiceTest {
         Event testSentEvent = EventBuilder.create().name("funny reference").type("funny things")
                 .data("TEST", "Some data").build();
         eventInjector.registerEvent(testSentEvent);
+        Thread.sleep(50);
 
         replayAll();
         assertEquals(true, handler.getHandlerCondition().test(testEvent));

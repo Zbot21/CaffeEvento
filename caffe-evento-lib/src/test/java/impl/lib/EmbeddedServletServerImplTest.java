@@ -8,6 +8,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,18 +25,23 @@ import static org.junit.Assert.*;
  */
 public class EmbeddedServletServerImplTest {
     private EmbeddedServletServer instance;
+    private int port = 2345;
+    private Server server = new Server(port);
 
     @Before
     public void setUp() throws Exception {
-        instance = new EmbeddedServletServerImpl();
-        instance.asyncStart();
+        ServletContextHandler servletContextHandler = new ServletContextHandler();
+        servletContextHandler.setContextPath("/");
+        server.setHandler(servletContextHandler);
+        instance = new EmbeddedServletServerImpl(servletContextHandler);
+        server.start();
         Thread.sleep(50);
     }
 
     @After
     public void tearDown() throws Exception {
         Thread.sleep(50);
-        instance.stop();
+        server.stop();
     }
 
     @Test
@@ -49,7 +56,6 @@ public class EmbeddedServletServerImplTest {
                 e.printStackTrace();
             }
         });
-        int port = EmbeddedServletServerImpl.DEFAULT_LISTEN_PORT;
         HttpClient client = HttpClients.createDefault();
         HttpPost post = new HttpPost("http://localhost:"+port+"/testPoint");
         post.setEntity(new StringEntity("test post data"));

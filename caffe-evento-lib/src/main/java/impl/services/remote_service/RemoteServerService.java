@@ -9,6 +9,7 @@ import impl.event_queue.EventSourceImpl;
 import api.lib.EmbeddedServletServer;
 import impl.lib.EmbeddedServletServerImpl;
 import impl.services.AbstractService;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -17,34 +18,21 @@ import java.util.UUID;
  * Created by chris on 7/14/16.
  */
 public class RemoteServerService extends AbstractService {
-    private EmbeddedServletServer server;
     private UUID serverId = UUID.randomUUID();
     private EventSource eventGenerator;
 
-    public RemoteServerService(EmbeddedServletServer server) {
-        this(new EventQueueInterfaceImpl(), server);
-    }
-
-    public RemoteServerService(int port) {
-        this(new EventQueueInterfaceImpl(), port);
-    }
-
-    public RemoteServerService(EventQueueInterface eventQueueInterface) {
-        this(eventQueueInterface, new EmbeddedServletServerImpl());
-    }
-
-    public RemoteServerService(EventQueueInterface eventQueueInterface, int port) {
-        this(eventQueueInterface, new EmbeddedServletServerImpl(port));
+    public RemoteServerService(ServletContextHandler handler) {
+        this(new EventQueueInterfaceImpl(), handler);
     }
 
     public UUID getServerId() {
         return serverId;
     }
 
-    public RemoteServerService(EventQueueInterface eventQueueInterface, EmbeddedServletServer server) {
+    public RemoteServerService(EventQueueInterface eventQueueInterface, ServletContextHandler handler) {
         super(eventQueueInterface);
         eventGenerator = new EventSourceImpl();
-        this.server = server;
+        EmbeddedServletServer server = new EmbeddedServletServerImpl(handler);
         getEventQueueInterface().addEventSource(eventGenerator);
 
         // Create event handler event
@@ -82,14 +70,5 @@ public class RemoteServerService extends AbstractService {
                 e.printStackTrace();
             }
         });
-
-    }
-
-    public void startServer() {
-        server.asyncStart();
-    }
-
-    public void stopServer() {
-        server.stop();
     }
 }
