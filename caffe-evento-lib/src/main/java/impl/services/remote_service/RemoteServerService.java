@@ -17,19 +17,19 @@ import java.util.UUID;
 /**
  * Created by chris on 7/14/16.
  */
-public class RemoteServerService extends AbstractService {
+public final class RemoteServerService extends AbstractService {
     private UUID serverId = UUID.randomUUID();
     private EventSource eventGenerator;
 
-    public RemoteServerService(ServletContextHandler handler) {
-        this(new EventQueueInterfaceImpl(), handler);
+    public RemoteServerService(String name, ServletContextHandler handler) {
+        this(name, new EventQueueInterfaceImpl(), handler);
     }
 
     public UUID getServerId() {
         return serverId;
     }
 
-    public RemoteServerService(EventQueueInterface eventQueueInterface, ServletContextHandler handler) {
+    public RemoteServerService(String name, EventQueueInterface eventQueueInterface, ServletContextHandler handler) {
         super(eventQueueInterface);
         eventGenerator = new EventSourceImpl();
         EmbeddedServletServer server = new EmbeddedServletServerImpl(handler);
@@ -53,22 +53,6 @@ public class RemoteServerService extends AbstractService {
                         .removeEventHandler(UUID.fromString("eventHandlerId")))
                 .build());
 
-//        // Add a servlet for getting the server id
-//        server.addServletConsumer("/getServerId", (req, res) -> {
-//            try {
-//                res.getWriter().write(serverId.toString());
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//
-//        // Add a servlet for receiving an event
-//        server.addServletConsumer("/serverReceiveEvent", (req, res) -> {
-//            try {
-//                eventGenerator.registerEvent(Event.decodeEvent(req.getReader()));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
+        server.addService(name, serverId, "/receiveEvent", (req, res) -> eventGenerator.registerEvent(Event.decodeEvent(req.getReader())));
     }
 }

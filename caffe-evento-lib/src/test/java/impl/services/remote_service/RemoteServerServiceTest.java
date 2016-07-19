@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.*;
@@ -47,12 +48,16 @@ public class RemoteServerServiceTest {
 
     private EventQueue eventQueue = new SynchronousEventQueue();
     private EventQueueInterface eventQueueInterface = new EventQueueInterfaceImpl();
-    private RemoteServerService instance = new RemoteServerService(eventQueueInterface, sourceContextHandler);
+    private RemoteServerService instance = new RemoteServerService("Server Test", eventQueueInterface, sourceContextHandler);
     private HttpClient client;
     private EventCollector eventCollector = new EventCollector();
     private EventSource eventInjector = new EventSourceImpl();
     private EmbeddedServletServer receivingService = new EmbeddedServletServerImpl(localContextHander);
     private final List<Event> receivedEvents = new ArrayList<>();
+
+    private UUID receivingId = UUID.randomUUID();
+    private String callbackAddress = "http://localhost:"+rxPort+"/"+receivingId.toString()+"/receiveEvent";
+    private String serverEventAddress;
 
     public void setUpServers() {
         sourceContextHandler.setContextPath("/");
@@ -65,19 +70,15 @@ public class RemoteServerServiceTest {
     @Before
     public void setUp() throws Exception {
         client = HttpClients.createDefault();
+        serverEventAddress = "http://localhost:"+port+"/"+instance.getServerId()+"/receiveEvent";
         eventQueue.registerService(instance);
         eventQueue.addEventSource(eventInjector);
         eventQueue.addEventHandler(eventCollector.getHandler());
         setUpServers();
         sourceServer.start();
         localServer.start();
-//        receivingService.addServletConsumer("/receiveEvent", (req, res) -> {
-//            try {
-//                receivedEvents.add(Event.decodeEvent(req.getReader()));
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
+        receivingService.addService("Test Service", receivingId, "/receiveEvent",
+                (req, res) -> receivedEvents.add(Event.decodeEvent(req.getReader())));
         Thread.sleep(100);
     }
 
@@ -93,7 +94,7 @@ public class RemoteServerServiceTest {
         Event event = EventBuilder.create().name("funny message")
                 .type("funny reference").build();
 
-        HttpPost post = new HttpPost("http://localhost:"+port+"/serverReceiveEvent");
+        HttpPost post = new HttpPost(serverEventAddress);
         post.setEntity(new StringEntity(event.encodeEvent()));
         client.execute(post);
         Thread.sleep(20);
@@ -104,19 +105,19 @@ public class RemoteServerServiceTest {
         assertEquals("Did not get the reference", "funny reference", collectedEvents.get(0).getEventType());
     }
 
-    @Test
-    public void testGetServerId() throws Exception {
-        HttpGet request = new HttpGet("http://localhost:"+port+"/getServerId");
-
-        HttpResponse res = client.execute(request);
-        HttpEntity entity = res.getEntity();
-        if(entity != null) {
-            try (InputStream inputStream = entity.getContent()) {
-                String response = IOUtils.toString(inputStream, "UTF-8");
-                assertEquals("Did not recieve correct serverId", instance.getServerId().toString(), response);
-            }
-        }
-    }
+//    @Test
+//    public void testGetServerId() throws Exception {
+//        HttpGet request = new HttpGet("http://localhost:"+port+"/getServerId");
+//
+//        HttpResponse res = client.execute(request);
+//        HttpEntity entity = res.getEntity();
+//        if(entity != null) {
+//            try (InputStream inputStream = entity.getContent()) {
+//                String response = IOUtils.toString(inputStream, "UTF-8");
+//                assertEquals("Did not recieve correct serverId", instance.getServerId().toString(), response);
+//            }
+//        }
+//    }
 
     @Test
     public void testAddEventHandler() throws Exception {
@@ -148,7 +149,7 @@ public class RemoteServerServiceTest {
     @Test
     public void testAddEventHandlerNetwork() throws Exception {
         EventHandler handler = EventHandler.create().hasDataKey("TEST")
-                .httpEventReceiver("http://localhost:"+rxPort+"/receiveEvent")
+                .httpEventReceiver(callbackAddress)
                 .build();
 
         Event createEvent = EventBuilder.create().name("Create Event Handler Event")
@@ -157,7 +158,7 @@ public class RemoteServerServiceTest {
                 .data("eventHandlerDetails", handler.encodeToJson())
                 .build();
 
-        HttpPost post = new HttpPost("http://localhost:"+port+"/serverReceiveEvent");
+        HttpPost post = new HttpPost(serverEventAddress);
         post.setEntity(new StringEntity(createEvent.encodeEvent()));
         client.execute(post);
 
