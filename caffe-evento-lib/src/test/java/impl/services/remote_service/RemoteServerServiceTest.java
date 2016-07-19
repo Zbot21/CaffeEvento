@@ -6,7 +6,7 @@ import api.utils.EventBuilder;
 import impl.event_queue.EventQueueInterfaceImpl;
 import impl.event_queue.EventSourceImpl;
 import impl.event_queue.SynchronousEventQueue;
-import impl.lib.EmbeddedServletServerImpl;
+import impl.lib.servlet_server.EmbeddedServletServerImpl;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -71,13 +71,13 @@ public class RemoteServerServiceTest {
         setUpServers();
         sourceServer.start();
         localServer.start();
-        receivingService.addServletConsumer("/receiveEvent", (req, res) -> {
-            try {
-                receivedEvents.add(Event.decodeEvent(req.getReader()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+//        receivingService.addServletConsumer("/receiveEvent", (req, res) -> {
+//            try {
+//                receivedEvents.add(Event.decodeEvent(req.getReader()));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
         Thread.sleep(100);
     }
 

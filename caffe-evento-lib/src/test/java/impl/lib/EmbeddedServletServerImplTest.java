@@ -1,6 +1,7 @@
 package impl.lib;
 
 import api.lib.EmbeddedServletServer;
+import impl.lib.servlet_server.EmbeddedServletServerImpl;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -46,16 +47,16 @@ public class EmbeddedServletServerImplTest {
 
     @Test
     public void testAddEndpoint() throws Exception {
-        instance.addServletConsumer("/testPoint", (req, res) -> {
-            try{
-                String val = req.getReader().lines().collect(Collectors.joining());
-                assertEquals("test post data", val);
-
-                res.getWriter().write("test response data");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+//        instance.addServletConsumer("/testPoint", (req, res) -> {
+//            try{
+//                String val = req.getReader().lines().collect(Collectors.joining());
+//                assertEquals("test post data", val);
+//
+//                res.getWriter().write("test response data");
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
         HttpClient client = HttpClients.createDefault();
         HttpPost post = new HttpPost("http://localhost:"+port+"/testPoint");
         post.setEntity(new StringEntity("test post data"));

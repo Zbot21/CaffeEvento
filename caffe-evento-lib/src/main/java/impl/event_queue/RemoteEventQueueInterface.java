@@ -4,7 +4,7 @@ import api.event_queue.Event;
 import api.event_queue.EventHandler;
 import api.event_queue.EventSource;
 import api.lib.EmbeddedServletServer;
-import impl.lib.EmbeddedServletServerImpl;
+import impl.lib.servlet_server.EmbeddedServletServerImpl;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
 import java.io.IOException;
@@ -23,13 +23,13 @@ public class RemoteEventQueueInterface extends EventQueueInterfaceImpl {
         eventGenerator = new EventSourceImpl();
         addEventSource(eventGenerator);
         server = new EmbeddedServletServerImpl(handler);
-        server.addServletConsumer("/receiveEvent", (req, res) -> {
-            try {
-                eventGenerator.registerEvent(Event.decodeEvent(req.getReader()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+//        server.addServletConsumer("/receiveEvent", (req, res) -> {
+//            try {
+//                eventGenerator.registerEvent(Event.decodeEvent(req.getReader()));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
     }
 
     public void connectToServer(String serverUrl) {
