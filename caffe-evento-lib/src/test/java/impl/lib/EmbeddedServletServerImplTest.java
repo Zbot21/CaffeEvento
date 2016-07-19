@@ -17,9 +17,12 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static impl.lib.JSONUtils.convertToJson;
 import static org.junit.Assert.*;
 
 /**
@@ -56,8 +59,6 @@ public class EmbeddedServletServerImplTest {
             res.getWriter().write("test response data");
         });
 
-        // TODO: Need to test that the services endpoint also has all the data that is needed.
-
         HttpClient client = HttpClients.createDefault();
         HttpPost post = new HttpPost("http://localhost:"+port+"/server/"+serverId+"/test");
         post.setEntity(new StringEntity("test post data"));
@@ -67,6 +68,23 @@ public class EmbeddedServletServerImplTest {
             try (InputStream inputStream = entity.getContent()) {
                 String response = IOUtils.toString(inputStream, "UTF-8");
                 assertEquals("test response data", response);
+            }
+        } else {
+            fail();
+        }
+
+        Map<String, UUID> services = new HashMap<>();
+        services.put(serviceName, serverId);
+
+        HttpClient client1 = HttpClients.createDefault();
+        HttpPost post1 = new HttpPost("http://localhost:"+port+"/server/services");
+        post1.setEntity(new StringEntity("test services data"));
+        HttpResponse res1 = client.execute(post1);
+        HttpEntity entity1 = res1.getEntity();
+        if (entity1 != null) {
+            try (InputStream inputStream1 = entity1.getContent()) {
+                String response1 = IOUtils.toString(inputStream1, "UTF-8");
+                assertEquals(JSONUtils.convertToJson(services).toString(), response1);
             }
         } else {
             fail();

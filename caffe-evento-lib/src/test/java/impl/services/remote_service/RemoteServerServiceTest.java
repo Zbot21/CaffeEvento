@@ -99,9 +99,9 @@ public class RemoteServerServiceTest {
         Thread.sleep(20);
 
         List<Event> collectedEvents = eventCollector.findEventsWithId(event.getEventId());
-        assertEquals(1, collectedEvents.size());
-        assertEquals("funny message", collectedEvents.get(0).getEventName());
-        assertEquals("funny reference", collectedEvents.get(0).getEventType());
+        assertEquals("Wrong number of events recorded", 1, collectedEvents.size());
+        assertEquals("Did not get the joke", "funny message", collectedEvents.get(0).getEventName());
+        assertEquals("Did not get the reference", "funny reference", collectedEvents.get(0).getEventType());
     }
 
     @Test
@@ -113,7 +113,7 @@ public class RemoteServerServiceTest {
         if(entity != null) {
             try (InputStream inputStream = entity.getContent()) {
                 String response = IOUtils.toString(inputStream, "UTF-8");
-                assertEquals(instance.getServerId().toString(), response);
+                assertEquals("Did not recieve correct serverId", instance.getServerId().toString(), response);
             }
         }
     }
@@ -129,10 +129,10 @@ public class RemoteServerServiceTest {
 
         eventInjector.registerEvent(createEvent);
         // 2 default event handlers and one that we create
-        assertEquals(3, eventQueueInterface.getEventHandlers().size());
+        assertEquals("Incorrect number of handlers present", 3, eventQueueInterface.getEventHandlers().size());
         Optional<EventHandler> rxHandlerOpt = eventQueueInterface.getEventHandlers().stream()
                 .filter(h -> h.getEventHandlerId().equals(handler.getEventHandlerId())).findFirst();
-        assertTrue(rxHandlerOpt.isPresent());
+        assertTrue("rxHandler is not present", rxHandlerOpt.isPresent());
         EventHandler rxHandler = rxHandlerOpt.get();
 
         Event testEvent = createMock(Event.class);
@@ -162,7 +162,7 @@ public class RemoteServerServiceTest {
         client.execute(post);
 
         // 2 default event handlers and one that we create
-        assertEquals(3, eventQueueInterface.getEventHandlers().size());
+        assertEquals("Wrong number of event handlers present", 3, eventQueueInterface.getEventHandlers().size());
         Optional<EventHandler> rxHandlerOpt = eventQueueInterface.getEventHandlers().stream()
                 .filter(h -> h.getEventHandlerId().equals(handler.getEventHandlerId())).findFirst();
         assertTrue(rxHandlerOpt.isPresent());
