@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
@@ -32,11 +33,11 @@ public class EmbeddedServletServerImplTest {
     @Before
     public void setUp() throws Exception {
         ServletContextHandler servletContextHandler = new ServletContextHandler();
-        servletContextHandler.setContextPath("/");
+        servletContextHandler.setContextPath("/server");
         server.setHandler(servletContextHandler);
         instance = new EmbeddedServletServerImpl(servletContextHandler);
         server.start();
-        Thread.sleep(50);
+        Thread.sleep(100);
     }
 
     @After
@@ -47,18 +48,18 @@ public class EmbeddedServletServerImplTest {
 
     @Test
     public void testAddEndpoint() throws Exception {
-//        instance.addServletConsumer("/testPoint", (req, res) -> {
-//            try{
-//                String val = req.getReader().lines().collect(Collectors.joining());
-//                assertEquals("test post data", val);
-//
-//                res.getWriter().write("test response data");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        });
+        UUID serverId = UUID.randomUUID();
+        String serviceName = "Test Service";
+        instance.addService(serviceName, serverId, "/test", (req, res) -> {
+            String value = req.getReader().lines().collect(Collectors.joining());
+            assertEquals("test post data", value);
+            res.getWriter().write("test response data");
+        });
+
+        // TODO: Need to test that the services endpoint also has all the data that is needed.
+
         HttpClient client = HttpClients.createDefault();
-        HttpPost post = new HttpPost("http://localhost:"+port+"/testPoint");
+        HttpPost post = new HttpPost("http://localhost:"+port+"/server/"+serverId+"/test");
         post.setEntity(new StringEntity("test post data"));
         HttpResponse res = client.execute(post);
         HttpEntity entity = res.getEntity();
