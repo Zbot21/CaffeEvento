@@ -188,7 +188,7 @@ public class SchedulerService extends AbstractService {
                         .eventData(SchedulerService.SCHEDULE_ID_FIELD, schedulerId.toString())
                         .eventHandler(event -> {
                             fireScheduledEventHandle.cancel(true); // this line actually stops the ScheduledEvent
-                            eventGenerator.registerEvent(createSchedulerCanceledEvent());
+                            createSchedulerCanceledEvent().send(eventGenerator);
                             SchedulerEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));
                             activeSchedulers.remove(schedulerId);
                         }).build();
@@ -209,12 +209,11 @@ public class SchedulerService extends AbstractService {
             }
         }
 
-        private Event createSchedulerCanceledEvent() {
+        private EventBuilder createSchedulerCanceledEvent() {
             return EventBuilder.create()
                     .name("Canceled Scheduler " + schedulerId)
                     .type(SCHEDULE_EVENT_CANCELED)
-                    .data(SCHEDULE_ID_FIELD, schedulerId.toString())
-                    .build();
+                    .data(SCHEDULE_ID_FIELD, schedulerId.toString());
         }
 
         public UUID getSchedulerId() {
