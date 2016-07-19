@@ -7,7 +7,7 @@ import api.event_queue.EventSource;
 import impl.event_queue.EventQueueInterfaceImpl;
 import impl.event_queue.EventSourceImpl;
 import api.lib.EmbeddedServletServer;
-import impl.lib.EmbeddedServletServerImpl;
+import impl.lib.servlet_server.EmbeddedServletServerImpl;
 import impl.services.AbstractService;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 
@@ -53,22 +53,22 @@ public class RemoteServerService extends AbstractService {
                         .removeEventHandler(UUID.fromString("eventHandlerId")))
                 .build());
 
-        // Add a servlet for getting the server id
-        server.addServletConsumer("/getServerId", (req, res) -> {
-            try {
-                res.getWriter().write(serverId.toString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        // Add a servlet for receiving an event
-        server.addServletConsumer("/serverReceiveEvent", (req, res) -> {
-            try {
-                eventGenerator.registerEvent(Event.decodeEvent(req.getReader()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+//        // Add a servlet for getting the server id
+//        server.addServletConsumer("/getServerId", (req, res) -> {
+//            try {
+//                res.getWriter().write(serverId.toString());
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//
+//        // Add a servlet for receiving an event
+//        server.addServletConsumer("/serverReceiveEvent", (req, res) -> {
+//            try {
+//                eventGenerator.registerEvent(Event.decodeEvent(req.getReader()));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        });
     }
 }
