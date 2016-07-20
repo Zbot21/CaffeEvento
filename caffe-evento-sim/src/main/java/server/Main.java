@@ -39,6 +39,7 @@ public class Main {
         String serviceName = "My Service";
         servletServer.addService(serviceName, serviceId, "/test", (req, res) -> res.getWriter().write("This was a testy"));
         servletServer.addService(serviceName, serviceId, "/test2", (req, res) -> res.getWriter().write("Making a note here, huge success"));
+        servletServer.addService(serviceName, serviceId, "/test3", (req, res) -> res.getWriter().write("Its hard to overstate my satisfaction"));
 
         ResourceHandler resource_handler = new ResourceHandler();
         resource_handler.setDirectoriesListed(true);
