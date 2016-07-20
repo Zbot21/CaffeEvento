@@ -16,10 +16,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * This service takes a schedule event and generates scheduled events
@@ -65,7 +62,7 @@ public class SchedulerService extends AbstractService {
     private static final Log log = LogFactory.getLog(SchedulerService.class);
 
     private final EventSource eventGenerator = new EventSourceImpl();
-    private final Map<UUID, Scheduler> activeSchedulers= new HashMap<>();
+    private final Map<UUID, Scheduler> activeSchedulers= new ConcurrentHashMap<>();
 
     public SchedulerService(EventQueueInterface eventQueueInterface)
     {
@@ -110,6 +107,7 @@ public class SchedulerService extends AbstractService {
 
     private class Scheduler {
         private final UUID schedulerId;
+        //TODO: Prevent concurrent modification of SchedulerEventHandlers
         private List<EventHandler> SchedulerEventHandlers = new ArrayList<>();
         private final ScheduledExecutorService eventTimer = Executors.newScheduledThreadPool(1);
         private Event scheduledEvent;
