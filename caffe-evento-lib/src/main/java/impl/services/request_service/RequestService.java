@@ -21,6 +21,7 @@ public class RequestService extends AbstractService {
 
     /* Request Fields */
     public static final String REQUEST_ID_FIELD = "REQUEST_ID";
+    public static final String REQUEST_MAX_RETRIES_FIELD = "MAX_RETRIES";
 
     /* Request Types */
     public static final String REQUEST_FUFILLED_EVENT = "REQUEST_FUFILLED";
@@ -108,13 +109,25 @@ public class RequestService extends AbstractService {
                     .eventType(REQUEST_FAILED_EVENT)
                     .eventData(REQUEST_ID_FIELD, requestId.toString())
                     .eventHandler(event -> {
-                        if(fufillmentAttempts.incrementAndGet() > MAX_RETRIES) {
+                        try {
+                            if (fufillmentAttempts.incrementAndGet() >
+                                    Optional.ofNullable(sourceEvent.getEventField(REQUEST_MAX_RETRIES_FIELD))
+                                            .map(Integer::decode)
+                                            .orElse(MAX_RETRIES)) {
+                                log.error("Could not fufill request " + requestId + ".\n" +
+                                        "Induced by " + sourceEvent.getEventName() + ": " + sourceEvent.getEventId());
+                                activeRequests.remove(requestId);
+                                requestEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e)); // Do not replace with method reference
+                            } else {
+                                eventGenerator.registerEvent(new EventImpl(fufillmentEvent));
+                            }
+                        } catch (NumberFormatException error) {
                             log.error("Could not fufill request " + requestId + ".\n" +
-                                    "Induced by " + sourceEvent.getEventName() + ": " + sourceEvent.getEventId());
+                                    "Induced by " + sourceEvent.getEventName() + ": " + sourceEvent.getEventId() + "\n" +
+                                    "Unable to determine configured number of retries: Defaulting to none");
+                            error.printStackTrace();
                             activeRequests.remove(requestId);
-                            requestEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e)); // Do not replace with method reference
-                        } else {
-                            eventGenerator.registerEvent(new EventImpl(fufillmentEvent));
+                            requestEventHandlers.forEach(e -> getEventQueueInterface().removeEventHandler(e));
                         }
                     }).build();
 
