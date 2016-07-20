@@ -40,6 +40,7 @@ public class Main {
         servletServer.addService(serviceName, serviceId, "/test", (req, res) -> res.getWriter().write("This was a testy"));
         servletServer.addService(serviceName, serviceId, "/test2", (req, res) -> res.getWriter().write("Making a note here, huge success"));
         servletServer.addService(serviceName, serviceId, "/test3", (req, res) -> res.getWriter().write("Its hard to overstate my satisfaction"));
+        servletServer.addService(serviceName, serviceId, "/test4", (req, res) -> res.getWriter().write("Aperture science.. we do what we must"));
 
         ResourceHandler resource_handler = new ResourceHandler();
         resource_handler.setDirectoriesListed(true);
