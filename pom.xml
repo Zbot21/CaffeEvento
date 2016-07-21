@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>caffe-evento-lib</module>
-        <module>caffe-evento-web-engine</module>
+        <module>caffe-evento-sim</module>
     </modules>
 
     <build>

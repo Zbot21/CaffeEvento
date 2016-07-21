@@ -4,7 +4,6 @@ import api.event_queue.*;
 import api.event_queue.EventQueueInterface;
 import api.event_queue.EventSource;
 import api.services.Service;
-import lib.RotatedLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,8 @@ import java.util.List;
 public class SynchronousEventQueue implements EventQueue {
 
     private List<EventQueueInterface> eventQueueInterfaces = new ArrayList<>();
-    private List<EventHandler> eventHandlers = new ArrayList<>();
-    private List<EventSource> eventSources = new ArrayList<>();
+    protected List<EventHandler> eventHandlers = new ArrayList<>();
+    protected List<EventSource> eventSources = new ArrayList<>();
 
     public SynchronousEventQueue() {
     }

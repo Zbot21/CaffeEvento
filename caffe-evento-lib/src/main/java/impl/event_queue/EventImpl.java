@@ -30,12 +30,10 @@ public class EventImpl implements Event {
         this.eventType = eventType;
     }
 
-    public static Event decodeEvent(String theEvent) {
-        return (new GsonBuilder()).create().fromJson(theEvent, EventImpl.class);
-    }
-
-    public static Event decodeEvent(Reader theEvent) {
-        return (new GsonBuilder()).create().fromJson(theEvent, EventImpl.class);
+    public EventImpl(Event e) {
+        this.eventName = e.getEventName();
+        this.eventType = e.getEventType();
+        this.eventDetails = e.getEventDetails();
     }
 
     @Override
@@ -69,6 +67,11 @@ public class EventImpl implements Event {
     @Override
     public Map<String, String> getEventDetails() {
         return new HashMap<>(eventDetails);
+    }
+
+    @Override
+    public Date getEventTimestamp() {
+        return timestamp;
     }
 
     @Override
